@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".LoadingPage"
+    android:background="@color/dark_grey"
+
+    >
+    <ImageView
+        android:id="@+id/carImage"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:src="@drawable/car"
+        android:scaleType="fitXY"/>
+    <ImageView
+        android:id="@+id/logo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ranelogo"
+        android:layout_below="@id/carImage"
+        android:layout_marginTop="-18dp"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        />
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:layout_below="@id/logo"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            >
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Steering control
+and diagnosis app"
+                android:textColor="@color/white"
+                android:textSize="30dp"
+                android:textStyle="bold"
+                />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="15dp"
+                >
+
+                <CheckBox
+                    android:id="@+id/checkbox"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    android:textSize="18dp"
+                    android:textStyle="bold"
+                    android:textColor="@color/white"
+                    android:theme="@style/colored_checkbox"
+                    android:backgroundTint="@color/white"/>
+
+                <TextView
+                    android:id="@+id/warning"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_centerHorizontal="true"
+                    android:text="I hereby grant permission to access the Bluetooth on my device."
+                    android:textColor="@color/grey"
+                    android:textSize="18dp" />
+            </LinearLayout>
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/accessButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="30dp"
+                android:background="@drawable/buttondis"
+                android:backgroundTint="@color/blue"
+                android:padding="12dp"
+                android:text="Connect Steering"
+                android:textAlignment="center"
+                android:textColor="@color/white"
+                android:textSize="16dp"
+                android:clickable="true"
+                android:enabled="false"
+                />
+
+        </LinearLayout>
+    </ScrollView>
+
+
+
+</RelativeLayout>
