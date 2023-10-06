@@ -75,7 +75,7 @@ public class HomeFragment extends Fragment {
     int MY_BLUETOOTH_PERMISSION_REQUEST = 1;
 
     int REQUEST_ENABLE_BLUETOOTH = 1;
-
+    private static final float MAX_ROTATION_ANGLE = 180f;
     private int previousVolumeLevel;
     private static final String APP_NAME = "BTChat";
     private static UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
@@ -95,7 +95,8 @@ public class HomeFragment extends Fragment {
         mediaPlayer = MediaPlayer.create(getActivity(), R.raw.indicator); // R.raw.audio is the reference to your audio file
         mediaPlayer.setLooping(true);
         volume = view.findViewById(R.id.volume);
-
+        lwheel = view.findViewById(R.id.lwheel);
+        rwheel = view.findViewById(R.id.rwheel);
         Set<Float> uniqueAnglesSet = new HashSet<>();
         final AudioManager audioManager = (AudioManager) getActivity().getSystemService(Context.AUDIO_SERVICE);
 
@@ -150,18 +151,17 @@ public class HomeFragment extends Fragment {
         leftkey.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                String messageToSend = "Hello, Bluetooth Device!"; // Your message to be sent
-                if (sendReceive != null) {
-                    sendReceive.write(messageToSend.getBytes());
-                    // You can also update UI or perform other actions after sending the message
-                    // For example, show a Toast message indicating the message was sent
-                    Toast.makeText(getContext(), "Message Sent: " + messageToSend, Toast.LENGTH_SHORT).show();
+                if (mediaPlayer.isPlaying()) {
+                    mediaPlayer.pause();
+                    leftkey.setImageResource(R.drawable.leftkey);
+                    // Pause the audio if it's currently playing
                 } else {
-                    // Handle the case where Bluetooth connection or message sending is not available
-                    Toast.makeText(getContext(), "Bluetooth connection not available", Toast.LENGTH_SHORT).show();
+                    mediaPlayer.start();
+                    leftkey.setImageResource(R.drawable.leftkey);// Start or resume the audio if it's paused
                 }
             }
         });
+
 
 
 // Method to send message via Bluetooth
@@ -223,13 +223,14 @@ public class HomeFragment extends Fragment {
                             // Calculate the new rotation angle
                             currentRotationAngle += (rotationAngleDiff > 0) ? ROTATION_STEP : -ROTATION_STEP;
                             // Ensure the rotation angle is within 360 degrees
-                            currentRotationAngle = (currentRotationAngle + 360) % 360;
+                            currentRotationAngle = Math.min(MAX_ROTATION_ANGLE, Math.max(-MAX_ROTATION_ANGLE, currentRotationAngle));
 
                             // Add the angle to the uniqueAnglesSet (filtering out duplicates)
                             uniqueAnglesSet.add(currentRotationAngle);
 
                             // Update the steering wheel rotation
                             steeringwheel.setRotation(currentRotationAngle);
+                            rotateLWheel(currentRotationAngle);
                             // Update the angle TextView
                             angletext.setText("Angles: " + uniqueAnglesSet.toString());
 
@@ -325,6 +326,15 @@ public class HomeFragment extends Fragment {
 
 
     }
+
+    private void rotateLWheel(float rotationAngle) {
+
+        lwheel.setRotation(rotationAngle/2f);
+        rwheel.setRotation(rotationAngle/2f);
+    }
+
+
+
 
     private void implementListeners() {
 

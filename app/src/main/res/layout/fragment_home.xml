@@ -68,6 +68,7 @@
         android:textAlignment="center"
         android:layout_marginTop="20dp"
         android:layout_below="@id/steeringwheel"
+
         >
     </TextView>
     <ScrollView

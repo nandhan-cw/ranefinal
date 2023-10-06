@@ -1,8 +1,10 @@
 package com.steering.testrane;
 
-import static com.steering.testrane.SteeringVariables.steeringStatus;
+
 
 import android.annotation.SuppressLint;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 
@@ -15,6 +17,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.Toast;
 
 public class LockSteeringFragment extends Fragment {
 
@@ -30,22 +33,19 @@ public class LockSteeringFragment extends Fragment {
         String lockvalue = (String) lockedstatus.getTag();
         statusbtn= view.findViewById(R.id.statusbtn);
         lockicon = view.findViewById(R.id.lockicon);
+        Toast.makeText(getActivity(), "check - "+SteeringVariables.steeringStatus.toString(), Toast.LENGTH_SHORT).show();
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        SteeringVariables.steeringStatus = sharedPreferences.getString("steeringStatus", "not_locked");
+        if (SteeringVariables.steeringStatus.equals("not_locked")) {
 
+            lockicon.setImageResource(R.drawable.baseline_lock_open_24);
+            lockedstatus.setText("LOCK");
 
-        if (steeringStatus == "not_locked") {
-            steeringStatus = "locked";
-            lockedstatus.setText("LOCKED");
-            lockicon.setImageResource(R.drawable.baseline_lock_24);
-            lockedstatus.setBackgroundColor(R.color.grey);
-            lockedstatus.setBackgroundResource(R.drawable.button);
 
         }else{
-            steeringStatus = "not_locked";
-            lockedstatus.setText("LOCK");
-            lockicon.setImageResource(R.drawable.baseline_lock_open_24);
-            lockicon.setColorFilter(getResources().getColor(R.color.white));
-            lockedstatus.setBackgroundColor(R.color.grey);
-            lockedstatus.setBackgroundResource(R.drawable.button);
+            lockicon.setImageResource(R.drawable.baseline_lock_24);
+            lockedstatus.setText("UNLOCK");
+
         }
 
         statusbtn.setOnClickListener(new View.OnClickListener() {
@@ -61,20 +61,24 @@ public class LockSteeringFragment extends Fragment {
             @SuppressLint("ResourceAsColor")
             @Override
             public void onClick(View view) {
-                if (steeringStatus == "not_locked") {
-                    steeringStatus = "locked";
-                    lockedstatus.setText("LOCKED");
+                if (SteeringVariables.steeringStatus == "not_locked") {
+                    Toast.makeText(getActivity(), "if steering status", Toast.LENGTH_SHORT).show();
+                    SteeringVariables.steeringStatus = "locked";
+                    lockedstatus.setText("UNLOCK");
                     lockicon.setImageResource(R.drawable.baseline_lock_24);
                     lockedstatus.setBackgroundColor(R.color.grey);
                     lockedstatus.setBackgroundResource(R.drawable.button);
-
+                    saveSteeringStatus("locked");
                 }else{
-                    steeringStatus = "not_locked";
+                    Toast.makeText(getActivity(), "else  steering status", Toast.LENGTH_SHORT).show();
+                    SteeringVariables.steeringStatus = "not_locked";
                     lockedstatus.setText("LOCK");
                     lockicon.setImageResource(R.drawable.baseline_lock_open_24);
                     lockicon.setColorFilter(getResources().getColor(R.color.white));
                     lockedstatus.setBackgroundColor(R.color.grey);
+                    saveSteeringStatus("not_locked");
                     lockedstatus.setBackgroundResource(R.drawable.button);
+
                 }
             }
 
@@ -84,5 +88,11 @@ public class LockSteeringFragment extends Fragment {
 
 
         return view;
+    }
+    private void saveSteeringStatus(String status) {
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("steeringStatus", status);
+        editor.apply();
     }
 }
