@@ -1,6 +1,8 @@
 package com.steering.testrane;
 
 
+import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
+
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
@@ -11,8 +13,10 @@ import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.graphics.drawable.ColorDrawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
@@ -35,8 +39,11 @@ import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
+import androidx.annotation.LongDef;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import java.io.IOException;
@@ -75,11 +82,12 @@ public class HomeFragment extends Fragment {
     int MY_BLUETOOTH_PERMISSION_REQUEST = 1;
 
     int REQUEST_ENABLE_BLUETOOTH = 1;
-    private static final float MAX_ROTATION_ANGLE = 180f;
+    private static float MAX_ROTATION_ANGLE;
     private int previousVolumeLevel;
     private static final String APP_NAME = "BTChat";
     private static UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805F9B34FB");
-
+    int divisor = 2; // Initial divisor
+    float startAngle = 90f; // Initial start angle
     @SuppressLint("MissingInflatedId")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -99,6 +107,20 @@ public class HomeFragment extends Fragment {
         rwheel = view.findViewById(R.id.rwheel);
         Set<Float> uniqueAnglesSet = new HashSet<>();
         final AudioManager audioManager = (AudioManager) getActivity().getSystemService(Context.AUDIO_SERVICE);
+
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE);
+        SteeringVariables.steeringStatus = sharedPreferences.getString("steeringStatus", "not_locked");
+        SteeringVariables.max_angle = sharedPreferences.getString("max_angle", "0");
+
+        try {
+            MAX_ROTATION_ANGLE = Float.parseFloat(SteeringVariables.max_angle);
+        } catch (NumberFormatException e) {
+            // Handle the exception, set a default value, or show an error message
+            MAX_ROTATION_ANGLE = 180; // Set a default value
+            Log.e(TAG, "Invalid max_angle value: " + SteeringVariables.max_angle);
+        }
+        Log.d(TAG, "onCreateView:steering stsu "+ SteeringVariables.steeringStatus.toString());
+        Log.d(TAG, "onCreateView:max angle "+ SteeringVariables.max_angle.toString());
 
         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.BLUETOOTH}, MY_BLUETOOTH_PERMISSION_REQUEST);
@@ -199,76 +221,84 @@ public class HomeFragment extends Fragment {
         });
 
 
-        steeringwheel.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                float x = event.getX();
-                float y = event.getY();
-                float touchAngle = calculateAngle(x, y);
+        if(SteeringVariables.steeringStatus.equals("locked")){
+            steeringwheel.setEnabled(false);
+        }else{
 
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        initialTouchAngle = touchAngle;
-                        uniqueAnglesSet.clear();// Clear the angle set when a new touch is initiated
-                        break;
-                    // Inside MotionEvent.ACTION_MOVE case:
-                    // Define a Set to store unique angles
+            steeringwheel.setEnabled(true);
+            steeringwheel.setOnTouchListener(new View.OnTouchListener() {
+                @Override
+                public boolean onTouch(View v, MotionEvent event) {
+                    float x = event.getX();
+                    float y = event.getY();
+                    float touchAngle = calculateAngle(x, y);
+
+                    switch (event.getAction()) {
+                        case MotionEvent.ACTION_DOWN:
+                            initialTouchAngle = touchAngle;
+                            uniqueAnglesSet.clear();// Clear the angle set when a new touch is initiated
+                            break;
+                        // Inside MotionEvent.ACTION_MOVE case:
+                        // Define a Set to store unique angles
 
 
 // Inside MotionEvent.ACTION_MOVE case:
-                    case MotionEvent.ACTION_MOVE:
-                        float rotationAngleDiff = touchAngle - initialTouchAngle;
-                        // Check if the rotation step is greater than the threshold
-                        if (Math.abs(rotationAngleDiff) >= TOUCH_SENSITIVITY_THRESHOLD) {
-                            // Calculate the new rotation angle
-                            currentRotationAngle += (rotationAngleDiff > 0) ? ROTATION_STEP : -ROTATION_STEP;
-                            // Ensure the rotation angle is within 360 degrees
-                            currentRotationAngle = Math.min(MAX_ROTATION_ANGLE, Math.max(-MAX_ROTATION_ANGLE, currentRotationAngle));
+                        case MotionEvent.ACTION_MOVE:
+                            float rotationAngleDiff = touchAngle - initialTouchAngle;
+                            // Check if the rotation step is greater than the threshold
+                            if (Math.abs(rotationAngleDiff) >= TOUCH_SENSITIVITY_THRESHOLD) {
+                                // Calculate the new rotation angle
+                                currentRotationAngle += (rotationAngleDiff > 0) ? ROTATION_STEP : -ROTATION_STEP;
+                                // Ensure the rotation angle is within 360 degrees
+                                currentRotationAngle = Math.min(MAX_ROTATION_ANGLE, Math.max(-MAX_ROTATION_ANGLE, currentRotationAngle));
 
-                            // Add the angle to the uniqueAnglesSet (filtering out duplicates)
-                            uniqueAnglesSet.add(currentRotationAngle);
+                                // Add the angle to the uniqueAnglesSet (filtering out duplicates)
+                                uniqueAnglesSet.add(currentRotationAngle);
 
-                            // Update the steering wheel rotation
-                            steeringwheel.setRotation(currentRotationAngle);
-                            rotateLWheel(currentRotationAngle);
-                            // Update the angle TextView
-                            angletext.setText("Angles: " + uniqueAnglesSet.toString());
+                                // Update the steering wheel rotation
+                                steeringwheel.setRotation(currentRotationAngle);
+                                rotateLWheel(currentRotationAngle);
+                                // Update the angle TextView
+                                angletext.setText("Angles: " + uniqueAnglesSet.toString());
 
-                            // Prepare the data to be sent over Bluetooth
-                            StringBuilder angleData = new StringBuilder();
-                            for (Float angle : uniqueAnglesSet) {
-                                angleData.append(angle).append(","); // Separate angles with commas
+                                // Prepare the data to be sent over Bluetooth
+                                StringBuilder angleData = new StringBuilder();
+                                for (Float angle : uniqueAnglesSet) {
+                                    angleData.append(angle).append(","); // Separate angles with commas
+                                }
+
+                                // Convert the StringBuilder to String and send it over Bluetooth
+                                String messageToSend = angleData.toString();
+
+                                if (sendReceive != null) {
+                                    sendReceive.write(messageToSend.getBytes());
+                                    // You can also update UI or perform other actions after sending the data
+                                    // For example, show a Toast message indicating the data was sent
+                                 //   Toast.makeText(getContext(), "Unique Angles Sent: " + messageToSend, Toast.LENGTH_SHORT).show();
+                                } else {
+                                    // Handle the case where Bluetooth connection or message sending is not available
+                                  //  Toast.makeText(getContext(), "Bluetooth connection not available", Toast.LENGTH_SHORT).show();
+                                }
+
+                                // Update the initial touch angle
+                                initialTouchAngle = touchAngle;
                             }
-
-                            // Convert the StringBuilder to String and send it over Bluetooth
-                            String messageToSend = angleData.toString();
-
-                            if (sendReceive != null) {
-                                sendReceive.write(messageToSend.getBytes());
-                                // You can also update UI or perform other actions after sending the data
-                                // For example, show a Toast message indicating the data was sent
-                                Toast.makeText(getContext(), "Unique Angles Sent: " + messageToSend, Toast.LENGTH_SHORT).show();
-                            } else {
-                                // Handle the case where Bluetooth connection or message sending is not available
-                                Toast.makeText(getContext(), "Bluetooth connection not available", Toast.LENGTH_SHORT).show();
-                            }
-
-                            // Update the initial touch angle
-                            initialTouchAngle = touchAngle;
-                        }
-                        break;
+                            break;
 
 
 
 
-                    case MotionEvent.ACTION_UP:
-                        // Clear the angle set when touch is released
-                        angleSet.clear();
-                        break;
+                        case MotionEvent.ACTION_UP:
+                            // Clear the angle set when touch is released
+                            angleSet.clear();
+                            break;
+                    }
+                    return true;
                 }
-                return true;
-            }
-        });
+            });
+        }
+
+
 
 
         bltbtn.setOnClickListener(new View.OnClickListener() {
@@ -282,6 +312,37 @@ public class HomeFragment extends Fragment {
 
     }
 
+
+    // Method to show the exit confirmation dialog
+    public void showExitConfirmationDialog() {
+        Dialog exitDialog = new Dialog(requireContext());
+        exitDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        exitDialog.setCancelable(true);
+        exitDialog.setContentView(R.layout.exit_confirmation_dialog);
+        Button confirmButton = exitDialog.findViewById(R.id.confirmButton);
+        exitDialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
+        Button cancelButton = exitDialog.findViewById(R.id.cancelButton);
+
+        confirmButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Handle the exit action here (e.g., call getActivity().finish())
+                exitDialog.dismiss();
+            }
+        });
+
+        cancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Dismiss the dialog if cancel is clicked
+                exitDialog.dismiss();
+            }
+        });
+
+        // Show the exit confirmation dialog
+        exitDialog.show();
+    }
+
     public void blueToothListPopup(Context context) {
         final Dialog dialog = new Dialog(context);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -293,7 +354,7 @@ public class HomeFragment extends Fragment {
 //        implementListeners();
 
         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-            Toast.makeText(context, "9999999999", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(context, "9999999999", Toast.LENGTH_SHORT).show();
         }
         Set<BluetoothDevice> bt = bluetoothAdapter.getBondedDevices();
         String[] strings = new String[bt.size()];
@@ -328,13 +389,28 @@ public class HomeFragment extends Fragment {
     }
 
     private void rotateLWheel(float rotationAngle) {
+        int divisor = calculateDivisor(MAX_ROTATION_ANGLE); // Your DIVISOR value
+        float maxWheelRotation = MAX_ROTATION_ANGLE/divisor; // Your maxLeftWheelRotation value
 
-        lwheel.setRotation(rotationAngle/2f);
-        rwheel.setRotation(rotationAngle/2f);
+        // Calculate the rotation angle for the left wheel based on the input rotation angle
+        float leftWheelRotation = Math.max(-maxWheelRotation, Math.min(maxWheelRotation, rotationAngle / divisor));
+
+        // Rotate the lwheel and rwheel images based on the calculated rotation angle
+        lwheel.setRotation(leftWheelRotation);
+        rwheel.setRotation(leftWheelRotation);
     }
 
+    private int calculateDivisor(float angle) {
 
 
+        // Calculate divisor based on the input angle
+        while (angle > startAngle) {
+            divisor += 2; // Increase divisor by 2 every time angle exceeds startAngle
+            startAngle += 90f; // Increase start angle by 90 degrees
+        }
+
+        return divisor;
+    }
 
     private void implementListeners() {
 
@@ -375,7 +451,7 @@ public class HomeFragment extends Fragment {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == 2) {
             if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-                Toast.makeText(getContext(), "666666666", Toast.LENGTH_SHORT).show();
+//                Toast.makeText(getContext(), "666666666", Toast.LENGTH_SHORT).show();
             }
             Set<BluetoothDevice> bt = bluetoothAdapter.getBondedDevices();
             String[] strings = new String[bt.size()];
@@ -609,6 +685,10 @@ public class HomeFragment extends Fragment {
                     break;
                 case STATE_CONNECTED:
                     connectStatus.setText("Connected");
+                    bltbtn.setImageResource(R.drawable.baseline_bluetooth_24);
+                    int blueColor = ContextCompat.getColor(getContext(), R.color.blue); // R.color.blue should be defined in your resources
+                    PorterDuff.Mode mode = PorterDuff.Mode.SRC_ATOP;
+                    bltbtn.setColorFilter(blueColor, mode);
                     break;
                 case STATE_CONNECTION_FAILED:
                     connectStatus.setText("Connection Failed");

@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.fragment.app.Fragment;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -62,7 +63,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         side_navigation = findViewById(R.id.side_navigation);
         NavigationView navigationView = findViewById(R.id.side_navigation);
         settings = findViewById(R.id.settings);
-
+        SharedPreferences sharedPreferences = MainActivity.this.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        SteeringVariables.loginstatus = sharedPreferences.getString("loginstatus", "off");
         settings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -125,24 +127,36 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             if(item.getItemId() == R.id.home){
                 getSupportFragmentManager()
                         .beginTransaction()
-                        .replace(R.id.frame_layout, new HomeFragment())
+                        .replace(R.id.frame_layout, new HomeFragment(),null)
+                        .addToBackStack(null)
                         .commit();
+                drawerLayout.closeDrawer(GravityCompat.START);
                 return true;
             }
             else if(item.getItemId() == R.id.status){
                 getSupportFragmentManager()
                         .beginTransaction()
-                        .replace(R.id.frame_layout, new StatusFragment())
+                        .replace(R.id.frame_layout, new StatusFragment(),null)
+                        .addToBackStack(null)
                         .commit();
+                drawerLayout.closeDrawer(GravityCompat.START);
                 return true;
             }
             else if(item.getItemId() == R.id.lock){
                 getSupportFragmentManager()
                         .beginTransaction()
-                        .replace(R.id.frame_layout, new LockSteeringFragment())
+                        .replace(R.id.frame_layout, new LockSteeringFragment(),null)
+                        .addToBackStack(null)
                         .commit();
+                drawerLayout.closeDrawer(GravityCompat.START);
+                return true;
+            }else if(item.getItemId() == R.id.logout){
+                saveloginstatus("off");
+                startActivity(new Intent(MainActivity.this, LoadingPage.class));
+                finish();
                 return true;
             }
+
             return true;
         }
         return super.onOptionsItemSelected(item);
@@ -153,7 +167,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if(item.getItemId() == R.id.home){
             getSupportFragmentManager()
                     .beginTransaction()
-                    .replace(R.id.frame_layout, new HomeFragment())
+                    .replace(R.id.frame_layout, new HomeFragment(),null)
+                    .addToBackStack(null)
                     .commit();
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
@@ -161,7 +176,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         else if(item.getItemId() == R.id.status){
             getSupportFragmentManager()
                     .beginTransaction()
-                    .replace(R.id.frame_layout, new StatusFragment())
+                    .replace(R.id.frame_layout, new StatusFragment(),null)
+                    .addToBackStack(null)
                     .commit();
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
@@ -169,24 +185,37 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         else if(item.getItemId() == R.id.lock){
             getSupportFragmentManager()
                     .beginTransaction()
-                    .replace(R.id.frame_layout, new LockSteeringFragment())
+                    .replace(R.id.frame_layout, new LockSteeringFragment(),null)
+                    .addToBackStack(null)
                     .commit();
             drawerLayout.closeDrawer(GravityCompat.START);
             return true;
         }
+        else if(item.getItemId() == R.id.logout){
+            saveloginstatus("off");
+            startActivity(new Intent(MainActivity.this, LoadingPage.class));
+            finish();
+            return true;
+        }
         return true;
     }
-
     @Override
     public void onBackPressed() {
-        if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
-            drawerLayout.closeDrawer(GravityCompat.START);
+        Fragment fragment = getSupportFragmentManager().findFragmentById(R.id.frame_layout);
+        if (fragment instanceof HomeFragment) {
+            ((HomeFragment) fragment).showExitConfirmationDialog();
         } else {
             super.onBackPressed();
         }
     }
 
 
+    private void saveloginstatus(String status) {
+        SharedPreferences sharedPreferences = MainActivity.this.getSharedPreferences(SHARED_PREFS, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString("loginstatus", status);
+        editor.apply();
+    }
 
 
 
@@ -226,7 +255,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void saveData(){
         SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFS,MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-
         editor.putString("max_angle",SteeringVariables.max_angle.toString());
         editor.putString("steering_auto",SteeringVariables.steeringauto.toString());
         editor.putString("steeringstatus",SteeringVariables.steeringStatus.toString());

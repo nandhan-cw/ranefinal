@@ -82,10 +82,63 @@
         android:id="@+id/side_navigation"
         android:layout_gravity="start"
         app:menu="@menu/side_menu"
+        app:headerLayout="@layout/nav_header"
         android:backgroundTint="@color/dark_grey"
         app:itemTextColor="@color/white"
         app:itemIconTint="@color/white"
-     />
+    >
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- First text at the top -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text=""
+                android:textSize="30dp"
+                android:textStyle="bold"
+                android:textColor="@color/white" />
+
+            <!-- Empty space to push items to the bottom -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <!-- Second text and image at the bottom -->
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:padding="20dp">
+
+                <TextView
+                    android:id="@+id/powered"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Powered by"
+                    android:textColor="@color/white"
+                    android:layout_marginBottom="20dp" />
+
+                <ImageView
+                    android:id="@+id/logo"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/powered"
+                    android:src="@drawable/ranelogo" />
+            </RelativeLayout>
+
+        </LinearLayout>
+
+    </com.google.android.material.navigation.NavigationView>
+
+
+
+
+
+
+
 
 
 </androidx.drawerlayout.widget.DrawerLayout>

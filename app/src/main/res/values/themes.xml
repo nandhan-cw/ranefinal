@@ -13,12 +13,17 @@
     </style>
     <style name="colored_checkbox" parent="Theme.AppCompat.Light">
         <item name="colorAccent">@android:color/holo_blue_dark</item>
-        <item name="android:textColorSecondary" >@color/white</item>
+        <item name="colorControlNormal">@android:color/white</item> <!-- Change this line -->
+        <item name="android:textColorSecondary">@color/white</item>
     </style>
 
     <style name="AppTheme.NavigationView" parent="Widget.Design.NavigationView">
         <!-- Customize your navigation view styles here -->
 
+    </style>
+    <style name="NavigationMenuItem">
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@android:color/holo_blue_dark</item>
     </style>
 
 </resources>

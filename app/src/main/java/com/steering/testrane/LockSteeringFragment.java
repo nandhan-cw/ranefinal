@@ -34,7 +34,7 @@ public class LockSteeringFragment extends Fragment {
         statusbtn= view.findViewById(R.id.statusbtn);
         lockicon = view.findViewById(R.id.lockicon);
         Toast.makeText(getActivity(), "check - "+SteeringVariables.steeringStatus.toString(), Toast.LENGTH_SHORT).show();
-        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE);
         SteeringVariables.steeringStatus = sharedPreferences.getString("steeringStatus", "not_locked");
         if (SteeringVariables.steeringStatus.equals("not_locked")) {
 
@@ -53,7 +53,7 @@ public class LockSteeringFragment extends Fragment {
             public void onClick(View view) {
                 Fragment fragtwo = new StatusFragment();
                 FragmentTransaction fm = getActivity().getSupportFragmentManager().beginTransaction();
-                fm.replace(R.id.frame_layout,fragtwo).commit();
+                fm.replace(R.id.frame_layout,fragtwo,null).addToBackStack(null).commit();
             }
         });
 
@@ -90,9 +90,10 @@ public class LockSteeringFragment extends Fragment {
         return view;
     }
     private void saveSteeringStatus(String status) {
-        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString("steeringStatus", status);
         editor.apply();
     }
+
 }

@@ -7,6 +7,7 @@ public class SteeringVariables {
     public static String max_angle="0";
 
     public static String steeringauto="off";
+    public static String loginstatus="on";
     public static String getCurrentFragment() {
         return currentFragment;
     }
