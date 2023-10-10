@@ -7,7 +7,7 @@
     android:backgroundTint="@color/white">
 
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Are you sure you want to exit the app?"
         android:textSize="18sp"
@@ -19,6 +19,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center"
+        android:layout_gravity="center"
         android:layout_marginTop="20dp">
 
         <androidx.appcompat.widget.AppCompatButton

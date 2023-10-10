@@ -49,7 +49,7 @@ public class LoadingPage extends AppCompatActivity {
         SharedPreferences sharedPreferences = LoadingPage.this.getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE);
         SteeringVariables.loginstatus = sharedPreferences.getString("loginstatus", "off");
         Log.d(TAG, "onCreate:login "+SteeringVariables.loginstatus.toString());
-        Toast.makeText(this, "login", Toast.LENGTH_SHORT).show();
+//        Toast.makeText(this, "login", Toast.LENGTH_SHORT).show();
         if (SteeringVariables.loginstatus.equals("on")) {
 
             startActivity(new Intent(LoadingPage.this, MainActivity.class));
@@ -89,10 +89,7 @@ public class LoadingPage extends AppCompatActivity {
             }
         });
     }
-    @Override
-    public void onBackPressed() {
-        showExitConfirmationDialog();
-    }
+
 
     private void showExitConfirmationDialog() {
         final Dialog exitDialog = new Dialog(this);

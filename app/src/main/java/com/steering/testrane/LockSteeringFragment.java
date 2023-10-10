@@ -33,7 +33,7 @@ public class LockSteeringFragment extends Fragment {
         String lockvalue = (String) lockedstatus.getTag();
         statusbtn= view.findViewById(R.id.statusbtn);
         lockicon = view.findViewById(R.id.lockicon);
-        Toast.makeText(getActivity(), "check - "+SteeringVariables.steeringStatus.toString(), Toast.LENGTH_SHORT).show();
+//        Toast.makeText(getActivity(), "check - "+SteeringVariables.steeringStatus.toString(), Toast.LENGTH_SHORT).show();
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE);
         SteeringVariables.steeringStatus = sharedPreferences.getString("steeringStatus", "not_locked");
         if (SteeringVariables.steeringStatus.equals("not_locked")) {
@@ -62,7 +62,7 @@ public class LockSteeringFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 if (SteeringVariables.steeringStatus == "not_locked") {
-                    Toast.makeText(getActivity(), "if steering status", Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(getActivity(), "if steering status", Toast.LENGTH_SHORT).show();
                     SteeringVariables.steeringStatus = "locked";
                     lockedstatus.setText("UNLOCK");
                     lockicon.setImageResource(R.drawable.baseline_lock_24);
@@ -70,7 +70,7 @@ public class LockSteeringFragment extends Fragment {
                     lockedstatus.setBackgroundResource(R.drawable.button);
                     saveSteeringStatus("locked");
                 }else{
-                    Toast.makeText(getActivity(), "else  steering status", Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(getActivity(), "else  steering status", Toast.LENGTH_SHORT).show();
                     SteeringVariables.steeringStatus = "not_locked";
                     lockedstatus.setText("LOCK");
                     lockicon.setImageResource(R.drawable.baseline_lock_open_24);

@@ -50,6 +50,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     ImageView settings;
     EditText maxAngleEditText  ;
     ToggleButton toggleButton ;
+
+    Button savebtn;
     boolean isChecked ;
     public static final String SHARED_PREFS = "sharedPrefs";
 
@@ -228,7 +230,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         ImageView closeBtn = dialog.findViewById(R.id.cancelButton);
         maxAngleEditText = dialog.findViewById(R.id.max_angle);
         toggleButton = dialog.findViewById(R.id.toggle_button);
-
+        savebtn = dialog.findViewById(R.id.savebtn);
         maxAngleEditText.setText(SteeringVariables.max_angle);
         toggleButton.setChecked(SteeringVariables.steeringauto.equals("on"));
 
@@ -238,13 +240,28 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 SteeringVariables.max_angle = maxAngleEditText.getText().toString();
                 SteeringVariables.steeringauto = toggleButton.isChecked() ? "on" : "off";
                 saveData();
+                loadData();
+                HomeFragment.updAngle();
+                dialog.dismiss();
+            }
+        });
+        savebtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                SteeringVariables.max_angle = maxAngleEditText.getText().toString();
+                SteeringVariables.steeringauto = toggleButton.isChecked() ? "on" : "off";
+                saveData();
+                loadData();
+                HomeFragment.updAngle();
                 dialog.dismiss();
             }
         });
         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
             public void onDismiss(DialogInterface dialogInterface) {
+
                 saveData();
+                loadData();
             }
         });
 

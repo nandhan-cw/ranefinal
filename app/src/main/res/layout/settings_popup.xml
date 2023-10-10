@@ -5,6 +5,7 @@
     android:background="@drawable/bg"
     android:padding="20dp"
     android:layout_gravity="center"
+
     >
     <LinearLayout
         android:id="@+id/loginTitle"
@@ -39,14 +40,15 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Max Angle  :"
+            android:text="Max Angle      :"
             android:textColor="@color/grey"
-            android:textSize="18dp"></TextView>
+            android:textSize="18dp"
+            android:padding="10dp"></TextView>
         <EditText
             android:id="@+id/max_angle"
             android:layout_width="100dp"
             android:layout_height="50dp"
-            android:hint=""
+            android:hint="180"
             android:textSize="20dp"
             android:inputType="text"
             android:background="@drawable/btn_outline"
@@ -67,8 +69,9 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Max Angle  :"
+            android:text="Auto steering  :"
             android:textColor="@color/grey"
+            android:padding="10dp"
             android:textSize="18dp"></TextView>
         <ToggleButton
             android:id="@+id/toggle_button"
@@ -83,7 +86,16 @@
             android:padding="16dp" />
 
     </LinearLayout>
-
+    <androidx.appcompat.widget.AppCompatButton
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Save"
+        android:background="@drawable/button"
+        android:layout_below="@id/steeringsettings"
+        android:layout_marginTop="40dp"
+        android:textColor="@color/white"
+        android:id="@+id/savebtn"
+        ></androidx.appcompat.widget.AppCompatButton>
 
 
 

@@ -22,7 +22,7 @@
         android:layout_height="wrap_content"
         android:src="@drawable/ranelogo"
         android:layout_below="@id/carImage"
-        android:layout_marginTop="-18dp"
+        android:layout_marginTop="10dp"
         android:paddingLeft="20dp"
         android:paddingRight="20dp"
         />
@@ -54,6 +54,7 @@ and diagnosis app"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_marginTop="15dp"
+
                 >
 
                 <androidx.appcompat.widget.AppCompatCheckBox
@@ -73,6 +74,7 @@ and diagnosis app"
                     android:layout_height="wrap_content"
                     android:layout_centerHorizontal="true"
                     android:text="I hereby grant permission to access the Bluetooth on my device."
+                    android:padding="10dp"
                     android:textColor="@color/grey"
                     android:textSize="18dp" />
             </LinearLayout>

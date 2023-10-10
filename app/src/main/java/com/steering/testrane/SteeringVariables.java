@@ -4,7 +4,7 @@ public class SteeringVariables {
     private static String currentFragment = "";
 
     public static String steeringStatus="not_locked";
-    public static String max_angle="0";
+    public static String max_angle="180";
 
     public static String steeringauto="off";
     public static String loginstatus="on";

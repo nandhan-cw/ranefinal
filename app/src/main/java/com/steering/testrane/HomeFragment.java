@@ -107,18 +107,18 @@ public class HomeFragment extends Fragment {
         rwheel = view.findViewById(R.id.rwheel);
         Set<Float> uniqueAnglesSet = new HashSet<>();
         final AudioManager audioManager = (AudioManager) getActivity().getSystemService(Context.AUDIO_SERVICE);
-
+        MAX_ROTATION_ANGLE = Float.parseFloat(SteeringVariables.max_angle);
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE);
         SteeringVariables.steeringStatus = sharedPreferences.getString("steeringStatus", "not_locked");
         SteeringVariables.max_angle = sharedPreferences.getString("max_angle", "0");
 
-        try {
-            MAX_ROTATION_ANGLE = Float.parseFloat(SteeringVariables.max_angle);
-        } catch (NumberFormatException e) {
-            // Handle the exception, set a default value, or show an error message
-            MAX_ROTATION_ANGLE = 180; // Set a default value
-            Log.e(TAG, "Invalid max_angle value: " + SteeringVariables.max_angle);
-        }
+//        try {
+//            MAX_ROTATION_ANGLE = Float.parseFloat(SteeringVariables.max_angle);
+//        } catch (NumberFormatException e) {
+//            // Handle the exception, set a default value, or show an error message
+//            MAX_ROTATION_ANGLE = 180f; // Set a default value
+//            Log.e(TAG, "Invalid max_angle value: " + SteeringVariables.max_angle);
+//        }
         Log.d(TAG, "onCreateView:steering stsu "+ SteeringVariables.steeringStatus.toString());
         Log.d(TAG, "onCreateView:max angle "+ SteeringVariables.max_angle.toString());
 
@@ -143,19 +143,6 @@ public class HomeFragment extends Fragment {
 
 
 
-//        leftkey.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                if (mediaPlayer.isPlaying()) {
-//                    mediaPlayer.pause();
-//                    leftkey.setImageResource(R.drawable.leftkey);
-//                    // Pause the audio if it's currently playing
-//                } else {
-//                    mediaPlayer.start();
-//                    leftkey.setImageResource(R.drawable.leftkey_light);// Start or resume the audio if it's paused
-//                }
-//            }
-//        });
         rightkey.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -179,7 +166,7 @@ public class HomeFragment extends Fragment {
                     // Pause the audio if it's currently playing
                 } else {
                     mediaPlayer.start();
-                    leftkey.setImageResource(R.drawable.leftkey);// Start or resume the audio if it's paused
+                    leftkey.setImageResource(R.drawable.leftkey_light);// Start or resume the audio if it's paused
                 }
             }
         });
@@ -312,6 +299,9 @@ public class HomeFragment extends Fragment {
 
     }
 
+    public static void updAngle(){
+        MAX_ROTATION_ANGLE = Float.parseFloat(SteeringVariables.max_angle);
+    }
 
     // Method to show the exit confirmation dialog
     public void showExitConfirmationDialog() {
@@ -327,6 +317,7 @@ public class HomeFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 // Handle the exit action here (e.g., call getActivity().finish())
+                getActivity().finish();
                 exitDialog.dismiss();
             }
         });
