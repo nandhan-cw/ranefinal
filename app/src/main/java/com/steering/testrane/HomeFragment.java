@@ -255,17 +255,21 @@ public class HomeFragment extends Fragment {
                                 }
 
                                 // Convert the StringBuilder to String and send it over Bluetooth
-                                String messageToSend = angleData.toString();
+                                String formattedData = formatAndConvertAngle(currentRotationAngle);
 
-                                if (sendReceive != null) {
-                                    sendReceive.write(messageToSend.getBytes());
-                                    // You can also update UI or perform other actions after sending the data
-                                    // For example, show a Toast message indicating the data was sent
-                                 //   Toast.makeText(getContext(), "Unique Angles Sent: " + messageToSend, Toast.LENGTH_SHORT).show();
-                                } else {
-                                    // Handle the case where Bluetooth connection or message sending is not available
-                                  //  Toast.makeText(getContext(), "Bluetooth connection not available", Toast.LENGTH_SHORT).show();
+// Send the formatted data three times
+                                for (int i = 0; i < 3; i++) {
+                                    if (sendReceive != null) {
+                                        sendReceive.write(formattedData.getBytes());
+                                        // You can also update UI or perform other actions after sending the data
+                                        // For example, show a Toast message indicating the data was sent
+                                        // Toast.makeText(getContext(), "Formatted Data Sent: " + formattedData, Toast.LENGTH_SHORT).show();
+                                    } else {
+                                        // Handle the case where Bluetooth connection or message sending is not available
+                                        // Toast.makeText(getContext(), "Bluetooth connection not available", Toast.LENGTH_SHORT).show();
+                                    }
                                 }
+
 
                                 // Update the initial touch angle
                                 initialTouchAngle = touchAngle;
@@ -298,6 +302,54 @@ public class HomeFragment extends Fragment {
         return view;
 
     }
+    private String formatAndConvertAngle(float angle) {
+        // Cast angle to int
+        int angleValue = (int) angle;
+
+        // Convert angle to hexadecimal
+        String hexAngle = Integer.toHexString(angleValue);
+
+        // Calculate the number of bytes required for the angle in hexadecimal
+        int angleBytes = (int) Math.ceil(hexAngle.length() / 2.0);
+
+        // Rest of your code remains unchanged
+        StringBuilder formattedData = new StringBuilder();
+
+        // Add Starting ID (1 Byte)
+        formattedData.append("40");
+
+        // Add Frame ID (2 Bytes)
+        formattedData.append("0000");
+
+        // Add DLC (1 Byte) - represented by the number of bytes required for the angle in hexadecimal
+        formattedData.append(String.format("%02X", angleBytes));
+
+        // Pad the hexAngle with leading zeros if it occupies an odd number of characters
+        if (hexAngle.length() % 2 != 0) {
+            hexAngle = "0" + hexAngle;
+        }
+
+        // Add Angle Data (Variable Length Based on Angle Length)
+        formattedData.append(hexAngle);
+
+        for (int i = 0; i < (8 - angleBytes); i++) {
+            formattedData.append("0");
+        }
+        // Add Ending ID (2 Bytes)
+        formattedData.append("0D0A");
+
+        // Log the formatted data
+        Log.d(TAG, "Formatted Data: " + formattedData.toString());
+
+        return formattedData.toString();
+    }
+
+
+
+
+
+
+
 
     public static void updAngle(){
         MAX_ROTATION_ANGLE = Float.parseFloat(SteeringVariables.max_angle);
