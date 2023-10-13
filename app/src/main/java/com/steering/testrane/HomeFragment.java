@@ -148,9 +148,11 @@ public class HomeFragment extends Fragment {
             public void onClick(View view) {
                 if (mediaPlayer.isPlaying()) {
                     mediaPlayer.pause();
+                    leftkey.setEnabled(true);
                     rightkey.setImageResource(R.drawable.rightkey);
                     // Pause the audio if it's currently playing
                 } else {
+                    leftkey.setEnabled(false);
                     mediaPlayer.start();
                     rightkey.setImageResource(R.drawable.rightkey_light);// Start or resume the audio if it's paused
                 }
@@ -162,10 +164,12 @@ public class HomeFragment extends Fragment {
             public void onClick(View view) {
                 if (mediaPlayer.isPlaying()) {
                     mediaPlayer.pause();
+                    rightkey.setEnabled(true);
                     leftkey.setImageResource(R.drawable.leftkey);
                     // Pause the audio if it's currently playing
                 } else {
                     mediaPlayer.start();
+                    rightkey.setEnabled(false);
                     leftkey.setImageResource(R.drawable.leftkey_light);// Start or resume the audio if it's paused
                 }
             }
@@ -255,20 +259,19 @@ public class HomeFragment extends Fragment {
                                 }
 
                                 // Convert the StringBuilder to String and send it over Bluetooth
-                                String formattedData = formatAndConvertAngle(currentRotationAngle);
+                                String formattedData = formatAndConvertData(currentRotationAngle);
 
-// Send the formatted data three times
+                                // Convert the formattedData string to bytes and send it over Bluetooth three times
+                                byte[] formattedDataBytes = hexStringToByteArray(formattedData);
                                 for (int i = 0; i < 3; i++) {
                                     if (sendReceive != null) {
-                                        sendReceive.write(formattedData.getBytes());
-                                        // You can also update UI or perform other actions after sending the data
-                                        // For example, show a Toast message indicating the data was sent
-                                        // Toast.makeText(getContext(), "Formatted Data Sent: " + formattedData, Toast.LENGTH_SHORT).show();
+                                        sendReceive.write(formattedDataBytes);
+                                        // Your other actions after sending the data
                                     } else {
                                         // Handle the case where Bluetooth connection or message sending is not available
-                                        // Toast.makeText(getContext(), "Bluetooth connection not available", Toast.LENGTH_SHORT).show();
                                     }
                                 }
+
 
 
                                 // Update the initial touch angle
@@ -302,27 +305,37 @@ public class HomeFragment extends Fragment {
         return view;
 
     }
-    private String formatAndConvertAngle(float angle) {
+    @Override
+    public void onPause() {
+        super.onPause();
+        if (mediaPlayer != null && mediaPlayer.isPlaying()) {
+            mediaPlayer.pause();
+        }
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (mediaPlayer != null) {
+            mediaPlayer.release();
+            mediaPlayer = null;
+        }
+    }
+    private String formatAndConvertData(float angle) {
         // Cast angle to int
         int angleValue = (int) angle;
 
         // Convert angle to hexadecimal
-        String hexAngle = Integer.toHexString(angleValue);
+        String hexAngle = String.format("%02X", angleValue);
 
         // Calculate the number of bytes required for the angle in hexadecimal
-        int angleBytes = (int) Math.ceil(hexAngle.length() / 2.0);
+        int angleBytes = hexAngle.length() / 2;
 
-        // Rest of your code remains unchanged
+        // Build the formatted data string by concatenating hexadecimal values
         StringBuilder formattedData = new StringBuilder();
-
-        // Add Starting ID (1 Byte)
-        formattedData.append("40");
-
-        // Add Frame ID (2 Bytes)
-        formattedData.append("0000");
-
-        // Add DLC (1 Byte) - represented by the number of bytes required for the angle in hexadecimal
-        formattedData.append(String.format("%02X", angleBytes));
+        formattedData.append("40"); // Starting ID (1 Byte) in hexadecimal
+        formattedData.append("0000"); // Frame ID (2 Bytes) in hexadecimal
+        formattedData.append(String.format("%02X", angleBytes)); // DLC (1 Byte) in hexadecimal
 
         // Pad the hexAngle with leading zeros if it occupies an odd number of characters
         if (hexAngle.length() % 2 != 0) {
@@ -332,16 +345,42 @@ public class HomeFragment extends Fragment {
         // Add Angle Data (Variable Length Based on Angle Length)
         formattedData.append(hexAngle);
 
-        for (int i = 0; i < (8 - angleBytes); i++) {
+        // Calculate the number of padding zeros required
+        int paddingLength = 8 - angleBytes;
+        for (int i = 0; i < paddingLength; i++) {
             formattedData.append("0");
         }
-        // Add Ending ID (2 Bytes)
-        formattedData.append("0D0A");
+
+        formattedData.append("0D0A"); // Ending ID (2 Bytes) in hexadecimal
 
         // Log the formatted data
         Log.d(TAG, "Formatted Data: " + formattedData.toString());
 
         return formattedData.toString();
+    }
+
+    private byte[] hexStringToByteArray(String s) {
+        // Remove commas and any other unwanted characters
+        s = s.replaceAll("[^A-Fa-f0-9]", "");
+
+        int len = s.length();
+        if (len % 2 != 0) {
+            // If the length is odd, pad a zero at the beginning to make it even
+            s = "0" + s;
+            len = s.length();
+        }
+
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            try {
+                data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4)
+                        + Character.digit(s.charAt(i + 1), 16));
+            } catch (Exception e) {
+                // Handle invalid characters if any
+                e.printStackTrace();
+            }
+        }
+        return data;
     }
 
 
