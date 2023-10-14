@@ -32,7 +32,14 @@
                 android:clickable="true"
                 android:layout_alignParentEnd="true" />
 
-
+            <ImageView
+                android:id="@+id/connectStatus"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:src="@drawable/grnbtn"
+                android:layout_gravity="right"
+                android:layout_weight="1"
+                />
         </androidx.appcompat.widget.Toolbar>
 
         <FrameLayout

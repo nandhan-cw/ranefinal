@@ -5,6 +5,7 @@ public class SteeringVariables {
 
     public static String steeringStatus="not_locked";
     public static String max_angle="180";
+    public static Boolean release = false;
 
     public static String steeringauto="off";
     public static String loginstatus="on";
