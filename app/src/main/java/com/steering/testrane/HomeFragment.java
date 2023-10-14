@@ -79,6 +79,7 @@ public class HomeFragment extends Fragment {
     InputStream inputStream;
     OutputStream outputStream;
     StringBuilder sbb = new StringBuilder();
+    Button write;
 
 
     static final int STATE_LISTENING = 1;
@@ -113,20 +114,8 @@ public class HomeFragment extends Fragment {
         volume = view.findViewById(R.id.volume);
         lwheel = view.findViewById(R.id.lwheel);
         rwheel = view.findViewById(R.id.rwheel);
-        Button write = view.findViewById(R.id.write);
-        write.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                try {
-                    OutputStreamWriter outputStreamWriter = new OutputStreamWriter(getContext().openFileOutput("config.txt", Context.MODE_PRIVATE));
-                    outputStreamWriter.write(sbb.toString());
-                    write.setText(sbb.toString());
-                    outputStreamWriter.close();
-                } catch (IOException e) {
-                    Log.e("Exception", "File write failed: " + e.toString());
-                }
-            }
-        });
+        write = view.findViewById(R.id.write);
+
 
 
         Set<Float> uniqueAnglesSet = new HashSet<>();
@@ -136,13 +125,6 @@ public class HomeFragment extends Fragment {
         SteeringVariables.steeringStatus = sharedPreferences.getString("steeringStatus", "not_locked");
         SteeringVariables.max_angle = sharedPreferences.getString("max_angle", "0");
 
-//        try {
-//            MAX_ROTATION_ANGLE = Float.parseFloat(SteeringVariables.max_angle);
-//        } catch (NumberFormatException e) {
-//            // Handle the exception, set a default value, or show an error message
-//            MAX_ROTATION_ANGLE = 180f; // Set a default value
-//            Log.e(TAG, "Invalid max_angle value: " + SteeringVariables.max_angle);
-//        }
         Log.d(TAG, "onCreateView:steering stsu " + SteeringVariables.steeringStatus.toString());
         Log.d(TAG, "onCreateView:max angle " + SteeringVariables.max_angle.toString());
 
@@ -158,33 +140,13 @@ public class HomeFragment extends Fragment {
         if (bluetoothAdapter == null) {
             // Device doesn't support Bluetooth
             Toast.makeText(getContext(), "Bluetooth not supported on this device", Toast.LENGTH_SHORT).show();
-        } else {
+        }
+        else {
             if (!bluetoothAdapter.isEnabled()) {
                 Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 startActivityForResult(enableBtIntent, REQUEST_ENABLE_BLUETOOTH);
             }
         }
-
-
-//        Set<BluetoothDevice> bt = bluetoothAdapter.getBondedDevices();
-//        String[] strings = new String[bt.size()];
-//        btArray = new BluetoothDevice[bt.size()];
-//        int index = 0;
-//
-//        if (bt.size() > 0) {
-//            for (BluetoothDevice device : bt) {
-//                btArray[index] = device;
-//                strings[index] = device.getName();
-//                if (device.getName().equals("HC-05")){
-//                    ClientClass clientClass = new ClientClass(btArray[index]);
-//                    clientClass.start();
-//                    connectStatus.setText("Connecting");
-//                }
-//                index++;
-//            }
-//
-//        }
-
 
         rightkey.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -193,8 +155,10 @@ public class HomeFragment extends Fragment {
                     mediaPlayer.pause();
                     leftkey.setEnabled(true);
                     rightkey.setImageResource(R.drawable.rightkey);
+                    SteeringVariables.data8 = (byte) 0x00;
                     // Pause the audio if it's currently playing
                 } else {
+                    SteeringVariables.data8 = (byte) 0x55;
                     leftkey.setEnabled(false);
                     mediaPlayer.start();
                     rightkey.setImageResource(R.drawable.rightkey_light);// Start or resume the audio if it's paused
@@ -209,8 +173,10 @@ public class HomeFragment extends Fragment {
                     mediaPlayer.pause();
                     rightkey.setEnabled(true);
                     leftkey.setImageResource(R.drawable.leftkey);
+                    SteeringVariables.data8 = (byte) 0x00;
                     // Pause the audio if it's currently playing
                 } else {
+                    SteeringVariables.data8 = (byte) 0xaa;
                     mediaPlayer.start();
                     rightkey.setEnabled(false);
                     leftkey.setImageResource(R.drawable.leftkey_light);// Start or resume the audio if it's paused
@@ -220,7 +186,6 @@ public class HomeFragment extends Fragment {
 
 
 // Method to send message via Bluetooth
-
 
         // Inside the OnClickListener for your volume button (ImageView)
         volume.setOnClickListener(new View.OnClickListener() {
@@ -256,7 +221,8 @@ public class HomeFragment extends Fragment {
 
         if (SteeringVariables.steeringStatus.equals("locked")) {
             steeringwheel.setEnabled(false);
-        } else {
+        }
+        else {
 
             steeringwheel.setEnabled(true);
             steeringwheel.setOnTouchListener(new View.OnTouchListener() {
@@ -385,15 +351,6 @@ public class HomeFragment extends Fragment {
 
         Log.d("value11", "hexstring : " + hexAngle);
 
-        // Pad the hexadecimal string with leading zeros if needed
-//        while (hexAngle.length() < 4) {
-//            hexAngle = "0" + hexAngle;
-//        }
-
-        // Parse the hexadecimal string to bytes
-//        byte[] angleBytes = new byte[2];
-//        angleBytes[0] = (byte) Integer.parseInt(hexAngle.substring(0, 2), 16); // High byte
-//        angleBytes[1] = (byte) Integer.parseInt(hexAngle.substring(2), 16);     // Low byte
 
         if (angleValue <= 255) {
             byte[] byteArray = new byte[2];
@@ -412,85 +369,6 @@ public class HomeFragment extends Fragment {
             return doubleByteArray;
         }
 
-//        String test = String.valueOf(angleValue);
-//        byte[] value = {};
-//        if(angle>255){
-
-//            String a = test.substring(0,3);
-//            String b = test.substring(3,5);
-//
-//            angleValue = Integer.parseInt(a);
-//            String hexAngle1 = String.format("%02X", angleValue);
-//            if (hexAngle1.length() % 2 != 0) {
-//                hexAngle1 = "0" + hexAngle1;
-//            }
-//
-//            int angleValue2 = Integer.parseInt(b);
-//            String hexAngle2 = String.format("%02X", angleValue2);
-//            if (hexAngle2.length() % 2 != 0) {
-//                hexAngle2 = "0" + hexAngle2;
-//            }
-//
-//            value[0]  = Byte.parseByte(hexAngle1);
-//            value[1]= Byte.parseByte(hexAngle2);
-
-//        }
-//        else if(test.length()==2){
-//            String hexAngle2 = String.format("%02X", angleValue);
-//            if (hexAngle2.length() % 2 != 0) {
-//                hexAngle2 = "0" + hexAngle2;
-//            }
-//
-//            value[0]  = Byte.parseByte(hexAngle2);
-//            value[1]= 0x00;
-//        }
-
-
-//         Convert angle to hexadecimal
-//        String hexAngle = String.format("%02X", angleValue);
-//
-//        // Calculate the number of bytes required for the angle in hexadecimal
-//        int angleBytes = hexAngle.length() / 2;
-//
-//        StringBuilder formattedData = new StringBuilder();
-//
-//        if (hexAngle.length() % 2 != 0) {
-//            hexAngle = "0" + hexAngle;
-//        }
-//
-//        formattedData.append(hexAngle);
-//
-//        Log.d(TAG, "Formatted Data: " + formattedData.toString());
-
-//        String hexString = "0x"+formattedData;
-////        byte[] temp = new byte[];
-//        if (hexString.startsWith("0x")) {
-//            hexString = hexString.substring(2);
-//        }
-//        try {
-//            int parsedValue = 0;
-//            for (char c : hexString.toCharArray()) {
-//                parsedValue = parsedValue * 16 + Character.digit(c, 16);
-//            }
-//            if (parsedValue >= 0 && parsedValue <= 255) {
-//                byte byteValue = (byte) parsedValue;
-//                byte tempvalue = 0x00;
-//                byte[] temp = new byte[]{byteValue, tempvalue};
-//                Log.d("value","temp1 "+temp[1]);
-//                SteeringVariables.data3 =temp;
-////                System.out.println("Byte Value: 0x" + String.format("%02X", byteValue));
-//            } else {
-//                byte[] temp = convertShortToBytes((short) parsedValue);
-//                SteeringVariables.data3 = temp;
-//                Log.d("value","temp2 "+temp[1]);
-////                System.out.println("Value out of range for byte.");
-//            }
-//
-//        } catch (NumberFormatException e) {
-//            Log.d("aaaaaaa",e.getMessage());
-////            System.out.println("Invalid hexadecimal format.");
-//        }
-//        return formattedData.toString();
     }
 
     private byte[] hexStringToByteArray(String s) {
@@ -720,28 +598,6 @@ public class HomeFragment extends Fragment {
 
                 }
                 ParcelUuid[] pu = device.getUuids();
-
-//                for(ParcelUuid puid : pu){
-//                    UUID uid = puid.getUuid();
-//                    socket = device.createInsecureRfcommSocketToServiceRecord(uid);
-//                    Log.e("11111111111111111111111111", "uid" + uid);
-//                    try{
-//                        Log.e("11111111111111111111111111", "socket try");
-//                        socket.connect();
-//                        Log.e("11111111111111111111111111", "socket success");
-//                    }
-//                    catch (Exception e){
-//                        Log.e("11111111111111111111111111", "socket failed ...");
-//                    }
-//                }
-
-//                MY_UUID = device.getUuids()[1].getUuid();
-//                Log.e("11111111111111111111111111", "trying fallback..." + MY_UUID);
-
-//                UUID puid = UUID.fromString("0000110a-0000-1000-8000-00805f9b34fb");
-//                UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
-//                device = "F0:65:AE:0A:8C:67";
-//                socket = device.createInsecureRfcommSocketToServiceRecord(MY_UUID);
                 socket = device.createRfcommSocketToServiceRecord(MY_UUID);
                 Log.e("11111111111111111111111111", "socket conf");
                 inputStream = socket.getInputStream();
@@ -753,7 +609,6 @@ public class HomeFragment extends Fragment {
         }
 
         public void run() {
-
             try {
                 if (ActivityCompat.checkSelfPermission(getContext(), android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
                     return;
@@ -774,27 +629,19 @@ public class HomeFragment extends Fragment {
                     Message message = Message.obtain();
                     message.what = STATE_CONNECTED;
                     handler.sendMessage(message);
-                    Log.e("11111111111111111111111111", "trying 2...");
-
                     sendReceive = new SendReceive(socket);
-                    Log.e("11111111111111111111111111", "trying 3...");
-
                     sendReceive.start();
-                    Log.e("11111111111111111111111111", "trying 4..."+socket);
 
                 }
                 else {
 //                    Toast.makeText(getContext(), "io", Toast.LENGTH_SHORT).show();
-                    Log.e("11111111111111111111111111", "trying 4... else");
+                    Log.e("Exception", "Input & output streams are null");
                 }
 
             }
             catch (IOException e) {
-
-                Log.e("11111111111111111111111111", "ex 1 "+e);
-
                 try {
-                    Log.e("11111111111111111111111111", "123 trying fallback...");
+                    Log.e("Socket connection", "trying fallback...");
                     socket = (BluetoothSocket) device.getClass().getMethod("createRfcommSocketToServiceRecord",UUID.class).invoke(device, 1);
 //                    socket.getInputStream();
 //                    socket.getOutputStream();
@@ -804,16 +651,14 @@ public class HomeFragment extends Fragment {
                     handler.sendMessage(message);
                     sendReceive = new SendReceive(socket);
                     sendReceive.start();
-
-                    Log.e("11111111111111111111111111", "Connected");
+                    Log.d("Scoket connection", "Connected");
                 } catch (Exception e2) {
-                    Log.e("11111111111111111111111111", "123 Couldn't establish Bluetooth connection! " + e2);
+                    Log.e("Exception", "Couldn't establish Bluetooth connection! " + e2);
                 }
 
                 e.printStackTrace();
                 Message message = Message.obtain();
                 message.what = STATE_CONNECTION_FAILED;
-//                Log.d("11111111111111111111111111", e.getMessage());
                 handler.sendMessage(message);
             }
         }
@@ -880,27 +725,17 @@ public class HomeFragment extends Fragment {
         private final OutputStream outputStream;
 
         public SendReceive(BluetoothSocket socket) {
-            Log.e("11111111111111111111111111", "trying 5...");
-
             bluetoothSocket = socket;
-//            inputStream = ip;
-//            outputStream = op;
             InputStream tempIn = null;
             OutputStream tempOut = null;
-
             try {
                 tempIn = bluetoothSocket.getInputStream();
                 tempOut = bluetoothSocket.getOutputStream();
-                Log.e("11111111111111111111111111", "trying 6..."+tempIn+" "+tempOut);
-
             } catch (IOException e) {
                 e.printStackTrace();
             }
-
             inputStream = tempIn;
             outputStream = tempOut;
-            Log.e("11111111111111111111111111", "trying 7..."+inputStream+" "+outputStream);
-
         }
 
         public void run() {
@@ -909,11 +744,12 @@ public class HomeFragment extends Fragment {
 
             while (true) {
                 try {
+//                    Log.d("Reading","trying to get value");
                     bytes = inputStream.read(buffer);
+//                    Log.d("Reading","trying to get value "+bytes);
                     handler.obtainMessage(STATE_MESSAGE_RECEIVED, bytes, -1, buffer).sendToTarget();
-                    Log.e("11111111111111111111111111", "trying 8...");
+//                    Log.d("Reading","Sent to handler");
                 } catch (IOException e) {
-                    Log.e("11111111111111111111111111", "trying 9...");
                     e.printStackTrace();
                 }
             }
@@ -921,11 +757,10 @@ public class HomeFragment extends Fragment {
 
         public void write(byte[] bytes) {
             try {
-
                 outputStream.write(bytes);
-                Log.e("11111111111111111111111111", "trying 10...");
+                Log.e("Write", "Value sending");
             } catch (IOException e) {
-                Log.e("11111111111111111111111111", "trying 11...");
+                Log.e("Write", "Error while sending value");
                 e.printStackTrace();
             }
         }
@@ -943,13 +778,6 @@ public class HomeFragment extends Fragment {
                     break;
                 case STATE_CONNECTED:
                     connectStatus.setText("Connected");
-//                    final byte[] hexData = {0x40, 0x00, 0x00, 0x08, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x0D, 0x0A};
-
-//                    sbb.append(SteeringVariables.data5.toString());
-
-
-
-//                            SteeringVariables.frameId1,SteeringVariables.dlc,SteeringVariables.data1,SteeringVariables.data2,SteeringVariables.data3,SteeringVariables.data4,SteeringVariables.data5,SteeringVariables.data6,SteeringVariables.data7,SteeringVariables.data8,  SteeringVariables.endId1,SteeringVariables.endId2};
                     while(sendReceive==null){
                         Log.d("11111111111111111111111111","sendrec1: "+sendReceive);
                         if (sendReceive != null) {
@@ -972,16 +800,11 @@ public class HomeFragment extends Fragment {
                                         byte[] frameId = convertShortToBytes(SteeringVariables.frameId1);
                                         byte[] hexData1 = {SteeringVariables.startId};
                                         byte[] hexData2 = {SteeringVariables.dlc,SteeringVariables.data1,SteeringVariables.data2,SteeringVariables.data3};
-
-
                                         byte[] angleData = SteeringVariables.data5;
-
                                         byte[] hexData3 = {SteeringVariables.data6,SteeringVariables.data7,SteeringVariables.data8,SteeringVariables.endId1,SteeringVariables.endId2};
 
                                         int totalLength = frameId.length + hexData1.length + hexData2.length + angleData.length + hexData3.length;
-
                                         byte[] concatenatedArray = new byte[totalLength];
-
                                         int offset = 0;
 
                                         System.arraycopy(hexData1, 0, concatenatedArray, offset, hexData1.length);
@@ -1000,16 +823,34 @@ public class HomeFragment extends Fragment {
 
                                         System.arraycopy(hexData3, 0, concatenatedArray, offset, hexData3.length);
 
-//                                        byte[] testval = {0x40,0x07,0x0E,0x08,0x1,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x0D,0x0A};
+
+                                        ///////// rx byte[]
+
+                                        byte[] frameIdRx = convertShortToBytes(SteeringVariables.frameIdRX);
+
+
+                                        byte[] concatenatedArrayRX = new byte[totalLength];
+
+                                        int offsetrx = 0;
+
+                                        System.arraycopy(hexData1, 0, concatenatedArrayRX, offsetrx, hexData1.length);
+                                        offsetrx += hexData1.length;
+
+                                        System.arraycopy(frameIdRx, 0, concatenatedArrayRX, offsetrx, frameIdRx.length);
+                                        offsetrx += frameIdRx.length;
+
+                                        System.arraycopy(hexData2, 0, concatenatedArrayRX, offsetrx, hexData2.length);
+                                        offsetrx += hexData2.length;
+
+                                        System.arraycopy(SteeringVariables.data5, 0, concatenatedArrayRX, offsetrx, SteeringVariables.data5.length);
+                                        offsetrx += SteeringVariables.data5.length;
+
+                                        System.arraycopy(hexData3, 0, concatenatedArrayRX, offsetrx, hexData3.length);
+
+//                                        byte[] testval = {0x40,0x07,0x1E,0x08,0x1,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x0D,0x0A};
                                         sendReceive.write(concatenatedArray);
-//                                        byte[] angleData = SteeringVariables.data5;
-                                        StringBuilder sb = new StringBuilder();
-                                        for (byte b : SteeringVariables.data5) {
-                                            sb.append(String.format("%02X", b)); // %02X formats the byte as a two-digit hexadecimal number
-                                        }
-                                        Log.d("value","value sent builder "+sb);
-//                                        Toast.makeText(getContext(), ""+SteeringVariables.data3, Toast.LENGTH_SHORT).show();
-                                        Thread.sleep(200); // Delay for 1 second (1000 milliseconds)
+                                        sendReceive.write(concatenatedArrayRX);
+                                        Thread.sleep(2000); // Delay for 1 second (1000 milliseconds)
                                     } catch (InterruptedException e) {
                                         e.printStackTrace();
                                     }
@@ -1023,8 +864,6 @@ public class HomeFragment extends Fragment {
                         // Handle the case where Bluetooth connection or message sending is not available
                     }
 
-
-
                     bltbtn.setImageResource(R.drawable.baseline_bluetooth_24);
                     int blueColor = ContextCompat.getColor(getContext(), R.color.blue); // R.color.blue should be defined in your resources
                     PorterDuff.Mode mode = PorterDuff.Mode.SRC_ATOP;
@@ -1036,6 +875,18 @@ public class HomeFragment extends Fragment {
                 case STATE_MESSAGE_RECEIVED:
                     byte[] readBuff = (byte[]) msg.obj;
                     String tempMsg = new String(readBuff, 0, msg.arg1);
+                    String hexString = bytesToHex(readBuff);
+                    Log.d("value","Received msg "+byteToHex(SteeringVariables.RxSignal));
+
+                    if(byteToHex(SteeringVariables.RxSignal).toLowerCase().equals("3e")){
+                        write.setText("POS");
+                    }
+                    else if(byteToHex(SteeringVariables.RxSignal).toLowerCase().equals("7e")){
+                        write.setText("NEG");
+                    }
+
+
+
                     break;
 
             }
@@ -1044,6 +895,23 @@ public class HomeFragment extends Fragment {
 
         }
     });
+
+    public static String bytesToHex(byte[] bytes) {
+        StringBuilder sb = new StringBuilder(bytes.length * 2);
+        Log.d("value","length: "+bytes.length);
+        SteeringVariables.RxSignal = bytes[5];
+        for(byte b: bytes) {
+            if (sb.length() <= 26) {
+                sb.append(String.format("%02x", b));
+            }
+        }
+        SteeringVariables.receivedSignal = sb.toString();
+        return sb.toString();
+    }
+
+    public static String byteToHex(byte b){
+        return String.format("%02x", b);
+    }
 
     public static byte[] convertShortToBytes(short value) {
         byte[] bytes = new byte[2];

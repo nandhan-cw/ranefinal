@@ -16,9 +16,11 @@ public class SteeringVariables {
         currentFragment = fragment;
     }
 
-
+    public static byte RxSignal;
+    public static String receivedSignal="";
     public static byte startId = 0x40;
     public static short frameId1 = 0x70E;
+    public static short frameIdRX = 0x71E;
 //    public static byte frameId2 = 0x0E;
     public static byte dlc = 0x08;
     public static byte data1 = 0x01;
