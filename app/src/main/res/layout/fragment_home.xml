@@ -32,6 +32,13 @@
                 android:layout_height="wrap_content"
                 android:text="not connected"
                 android:textSize="16dp"></TextView>
+
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="get"
+                android:visibility="gone"
+                android:id="@+id/write"/>
         </LinearLayout>
 
         <View
