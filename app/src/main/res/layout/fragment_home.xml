@@ -30,7 +30,7 @@
                 android:id="@+id/connectStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="not connected"
+                android:text=""
                 android:textSize="16dp"></TextView>
 
             <Button
