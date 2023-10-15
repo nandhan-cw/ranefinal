@@ -205,10 +205,7 @@ public class HomeFragment extends Fragment {
         }
         else connectStatus.setText("Not Connected");
 
-
-
 // Method to send message via Bluetooth
-
 
         // Inside the OnClickListener for your volume button (ImageView)
         volume.setOnClickListener(new View.OnClickListener() {
@@ -353,27 +350,21 @@ public class HomeFragment extends Fragment {
     }
 
     private byte[] formatAndConvertData(float angle) {
-
-
         int angleValue = (int) angle;
         Log.d("value11", "angle1 : " + angleValue);
-
-
         if (angleValue < 0) {
             angleValue = Math.abs(angleValue);
             SteeringVariables.data3 = 0x01;
-        } else {
+        }
+        else {
             SteeringVariables.data3 = 0x00;
         }
 
         Log.d("value11", "angle2 : " + angleValue);
 
-        // Cast angle to int
-
         String hexAngle = Integer.toHexString(angleValue);
 
         Log.d("value11", "hexstring : " + hexAngle);
-
 
         if (angleValue <= 255) {
             byte[] byteArray = new byte[2];
@@ -382,7 +373,8 @@ public class HomeFragment extends Fragment {
             SteeringVariables.data5 = byteArray;
             Log.d("value11", "data1 : " + byteArray[0] + " data2: " + byteArray[1]);
             return byteArray;
-        } else {
+        }
+        else {
             // If angle is more than 255, store it in a double byte array
             byte[] doubleByteArray = new byte[2];
             doubleByteArray[0] = (byte) Integer.parseInt(hexAngle.substring(0, 2), 16);
@@ -883,6 +875,7 @@ public class HomeFragment extends Fragment {
                     connectStatus.setText("Connection Failed");
                     break;
                 case STATE_MESSAGE_RECEIVED:
+
                     byte[] readBuff = (byte[]) msg.obj;
                     String tempMsg = new String(readBuff, 0, msg.arg1);
                     String hexString = bytesToHex(readBuff);

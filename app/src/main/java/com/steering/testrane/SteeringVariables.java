@@ -10,10 +10,10 @@ public class SteeringVariables {
     public static HomeFragment.SendReceive sendReceive;
     public static Boolean home_thread_flag = true;
     public static Boolean status_thread_flag = true;
+    public static Boolean lock_thread_flag = true;
     public static Boolean bluetooth = false;
     public static String steeringStatus="not_locked";
     public static String max_angle="180";
-
     public static String steeringauto="off";
     public static String loginstatus="on";
     public static String getCurrentFragment() {

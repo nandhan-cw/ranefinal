@@ -2,6 +2,8 @@ package com.steering.testrane;
 
 
 
+import static com.steering.testrane.SteeringVariables.sendReceive;
+
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -11,6 +13,7 @@ import android.os.Bundle;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,16 +39,16 @@ public class LockSteeringFragment extends Fragment {
 //        Toast.makeText(getActivity(), "check - "+SteeringVariables.steeringStatus.toString(), Toast.LENGTH_SHORT).show();
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE);
         SteeringVariables.steeringStatus = sharedPreferences.getString("steeringStatus", "not_locked");
-        if (SteeringVariables.steeringStatus.equals("not_locked")) {
 
+        SteeringVariables.status_thread_flag =false;
+
+        if (SteeringVariables.steeringStatus.equals("not_locked")) {
             lockicon.setImageResource(R.drawable.baseline_lock_open_24);
             lockedstatus.setText("LOCK");
-
-
-        }else{
+        }
+        else{
             lockicon.setImageResource(R.drawable.baseline_lock_24);
             lockedstatus.setText("UNLOCK");
-
         }
 
         statusbtn.setOnClickListener(new View.OnClickListener() {
@@ -80,12 +83,17 @@ public class LockSteeringFragment extends Fragment {
                     lockedstatus.setBackgroundResource(R.drawable.button);
 
                 }
+                startSendData();
             }
 
         });
 
-
-
+        if(HomeFragment.inputStream!=null && HomeFragment.outputStream!=null && sendReceive!=null){
+            startSendData();
+        }
+        else{
+            Toast.makeText(getContext(), "Connect to bluetooth", Toast.LENGTH_SHORT).show();
+        }
 
         return view;
     }
@@ -94,6 +102,16 @@ public class LockSteeringFragment extends Fragment {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString("steeringStatus", status);
         editor.apply();
+    }
+
+    private void startSendData(){
+
+        if(SteeringVariables.steeringStatus == "locked"){
+            SteeringVariables.data6=0x01;
+        }
+        else{
+            SteeringVariables.data6=0x00;
+        }
     }
 
 }
