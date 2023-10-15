@@ -1,6 +1,7 @@
 package com.steering.testrane;
 
 import static android.provider.Telephony.Mms.Part.TEXT;
+import static android.service.controls.ControlsProviderService.TAG;
 
 import static java.lang.Integer.parseInt;
 
@@ -25,10 +26,14 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.Window;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
+import android.widget.Spinner;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
@@ -47,11 +52,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     NavigationView side_navigation;
     Toolbar toolbar;
 
-    ImageView settings;
+    ImageView settings,connectStatus;
     EditText maxAngleEditText  ;
     ToggleButton toggleButton ;
-
+    EditText tx,rx;
     Button savebtn;
+    Spinner spinner;
+    String[] items;
+    ArrayAdapter<String> adapter;
     boolean isChecked ;
     public static final String SHARED_PREFS = "sharedPrefs";
 
@@ -62,16 +70,35 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         frame_layout = findViewById(R.id.frame_layout);
         bottom_navigation = findViewById(R.id.bottom_navigation);
+        connectStatus = findViewById(R.id.connectStatus);
         side_navigation = findViewById(R.id.side_navigation);
         NavigationView navigationView = findViewById(R.id.side_navigation);
         settings = findViewById(R.id.settings);
         SharedPreferences sharedPreferences = MainActivity.this.getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
         SteeringVariables.loginstatus = sharedPreferences.getString("loginstatus", "off");
+        SteeringVariables.vehicle = sharedPreferences.getString("vehicle","");
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while(true){
+                    if (SteeringVariables.bluetoothstatus == true) connectStatus.setImageResource(R.drawable.grnbtn);
+                    else connectStatus.setImageResource(R.drawable.redbtn);
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        }).start();
+
         settings.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Log.d("SettingsPopup", "Settings button clicked");
                 settingspopup(MainActivity.this);
+                Log.d("popup", "Settings button clicked");
+
                 loadData();
             }
         });
@@ -220,7 +247,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
 
-
     public void settingspopup(Context context) {
         final Dialog dialog = new Dialog(context);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -233,6 +259,25 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         savebtn = dialog.findViewById(R.id.savebtn);
         maxAngleEditText.setText(SteeringVariables.max_angle);
         toggleButton.setChecked(SteeringVariables.steeringauto.equals("on"));
+        tx = dialog.findViewById(R.id.tx);
+        rx = dialog.findViewById(R.id.rx);
+        spinner = dialog.findViewById(R.id.spinner);
+        items = getResources().getStringArray(R.array.default_options);
+        adapter = new ArrayAdapter<>(this, R.layout.custom_spinner_dropdown_item, items);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+        if(SteeringVariables.vehicle.equals("truck")){
+            spinner.setSelection(1);
+        }else if (SteeringVariables.vehicle.equals("tractor")){
+            spinner.setSelection(2);
+        }else{
+            spinner.setSelection(0);
+        }
+        Log.d("popup","6");
+        tx.setText(SteeringVariables.frameId1+"");
+        rx.setText(SteeringVariables.frameIdRX+"");
+
+        Log.d("popup", "vehicle 1st "+SteeringVariables.vehicle.toString());
 
         closeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -241,6 +286,9 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 SteeringVariables.steeringauto = toggleButton.isChecked() ? "on" : "off";
                 saveData();
                 loadData();
+//                vehicleChoose();
+                HomeFragment.vehicleChange();
+//                txrxChoose();
                 HomeFragment.updAngle();
                 dialog.dismiss();
             }
@@ -250,10 +298,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             public void onClick(View view) {
                 SteeringVariables.max_angle = maxAngleEditText.getText().toString();
                 SteeringVariables.steeringauto = toggleButton.isChecked() ? "on" : "off";
+                SteeringVariables.vehicle = spinner.getSelectedItem().toString();
                 saveData();
                 loadData();
+//                vehicleChoose();
+                HomeFragment.vehicleChange();
+//                txrxChoose();
+
                 HomeFragment.updAngle();
                 dialog.dismiss();
+
             }
         });
         dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
@@ -262,6 +316,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
                 saveData();
                 loadData();
+                HomeFragment.vehicleChange();
             }
         });
 
@@ -275,16 +330,57 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         editor.putString("max_angle",SteeringVariables.max_angle.toString());
         editor.putString("steering_auto",SteeringVariables.steeringauto.toString());
         editor.putString("steeringstatus",SteeringVariables.steeringStatus.toString());
+        editor.putString("vehicle",SteeringVariables.vehicle.toString());
+        Log.d("value","save "+String.valueOf(SteeringVariables.frameId1));
+        editor.putString("tx", String.valueOf(SteeringVariables.frameId1));
+        editor.putString("rx", String.valueOf(SteeringVariables.frameIdRX));
         editor.apply();
 
+    }
+    public void vehicleChoose(){
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                // Get the selected item from the adapter
+                String selectedItem = (String) parentView.getItemAtPosition(position);
+                // Do something with the selected item
+                if (selectedItem.equals("truck")) {
+                    SteeringVariables.vehicle = "truck";
+                    HomeFragment.vehicleChange();
+                    Log.d("vehicle", "vehicle 2st "+SteeringVariables.vehicle.toString());
 
+                }else if (selectedItem.equals("tractor")){
+                    SteeringVariables.vehicle="tractor";
+                    HomeFragment.vehicleChange();
+                    Log.d("vehicle", "vehicle 3st "+SteeringVariables.vehicle.toString());
+                }else {
+                    SteeringVariables.vehicle="car";
+                    HomeFragment.vehicleChange();
+                }
+
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parentView) {
+                // Handle situation when nothing is selected
+                SteeringVariables.vehicle = "car";
+            }
+        });
     }
 
+//    public void txrxChoose(){
+//        SteeringVariables.frameId1 = Short.parseShort("0x"+tx.getText().toString().toUpperCase());
+//        SteeringVariables.frameIdRX = Short.parseShort("0x"+rx.getText().toString().toUpperCase());
+//    }
     public void loadData(){
         SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFS,MODE_PRIVATE);
         SteeringVariables.max_angle = sharedPreferences.getString("max_angle", ""); // Load max angle
         SteeringVariables.steeringauto = sharedPreferences.getString("steering_auto",""); // Load steering auto state
         SteeringVariables.steeringStatus = sharedPreferences.getString("steeringstatus","");
+        SteeringVariables.vehicle = sharedPreferences.getString("vehicle","");
+
+//        SteeringVariables.frameId1 = Short.parseShort(sharedPreferences.getString("tx",""));
+//        SteeringVariables.frameIdRX = Short.parseShort(sharedPreferences.getString("rx",""));
 
 
         maxAngleEditText.setText(SteeringVariables.max_angle);  // Set text using SteeringVariables.max_angle

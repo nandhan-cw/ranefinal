@@ -23,7 +23,8 @@ public class SteeringVariables {
     public static void setCurrentFragment(String fragment) {
         currentFragment = fragment;
     }
-
+    public static Boolean release = false;
+    public static Boolean bluetoothstatus = false;
     public static byte RxSignal;
     public static String receivedSignal="";
     public static byte startId = 0x40;
@@ -34,6 +35,8 @@ public class SteeringVariables {
     public static byte data1 = 0x01;
     public static byte data2 = 0x00;
     public static byte data3 = 0x00;
+
+    public static String vehicle="";
 
     public static byte[] data5 = {0x00,0x00};
 

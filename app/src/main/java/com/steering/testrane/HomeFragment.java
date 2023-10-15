@@ -4,6 +4,7 @@ package com.steering.testrane;
 import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 
 import android.Manifest;
+import android.animation.ObjectAnimator;
 import android.annotation.SuppressLint;
 import android.app.Dialog;
 import android.app.ProgressDialog;
@@ -22,10 +23,13 @@ import android.graphics.PorterDuff;
 import android.graphics.drawable.ColorDrawable;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.ParcelUuid;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -38,6 +42,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -53,6 +58,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -63,8 +69,10 @@ public class HomeFragment extends Fragment {
     ImageView leftkey;
     ImageView rightkey;
     ImageView volume;
-    ImageView lwheel;
-    ImageView rwheel;
+    static ImageView lwheel;
+    static ImageView rwheel;
+    static ImageView wheelL;
+    static ImageView wheelR;
     BluetoothDevice device;
     TextView angletext;
     static TextView connectStatus;
@@ -103,7 +111,21 @@ public class HomeFragment extends Fragment {
     private static UUID MY_UUID = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb");
     int divisor = 2; // Initial divisor
     float startAngle = 90f; // Initial start angle
-
+    static ImageView l1wheel;
+    static ImageView r1wheel;
+    static ImageView l2wheel;
+    static ImageView r2wheel;
+    private boolean isAutoRotationEnabled = false;
+    float touchAngle;
+    ArrayList anglelist;
+    Set<Float> uniqueAnglesSet;
+    static RelativeLayout carbody;
+    static RelativeLayout truckbody;
+    static RelativeLayout tractorbody;
+    private Handler rotationHandler = new Handler();
+    private static final long VIBRATION_DURATION = 100;
+    boolean isRotationInProgress = false;
+    private static final long ROTATION_DELAY = 2000;
     @SuppressLint("MissingInflatedId")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -126,7 +148,6 @@ public class HomeFragment extends Fragment {
 
 
 
-        Set<Float> uniqueAnglesSet = new HashSet<>();
         final AudioManager audioManager = (AudioManager) getActivity().getSystemService(Context.AUDIO_SERVICE);
         MAX_ROTATION_ANGLE = Float.parseFloat(SteeringVariables.max_angle);
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE);
@@ -135,6 +156,47 @@ public class HomeFragment extends Fragment {
 
         SteeringVariables.home_thread_flag= true;
         SteeringVariables.status_thread_flag=false;
+
+        l1wheel = view.findViewById(R.id.l1wheel);
+        r1wheel = view.findViewById(R.id.r1wheel);
+        l2wheel = view.findViewById(R.id.l2wheel);
+        r2wheel = view.findViewById(R.id.r2wheel);
+        Button write = view.findViewById(R.id.write);
+        uniqueAnglesSet = new HashSet<>();
+        touchAngle = 0f;
+        carbody = view.findViewById(R.id.carbody);
+        truckbody = view.findViewById(R.id.truckbody);
+        tractorbody = view.findViewById(R.id.tractorbody);
+        Handler handler = new Handler();
+        anglelist = new ArrayList();
+
+        Runnable rotateToZero = new Runnable() {
+            @Override
+            public void run() {
+                if (currentRotationAngle > 0) {
+                    currentRotationAngle -= ROTATION_STEP;
+                    currentRotationAngle = Math.max(0, currentRotationAngle); // Ensure it doesn't go below 0
+                    steeringwheel.setRotation(currentRotationAngle);
+                    handler.postDelayed(this, ROTATION_DELAY); // Delay for ROTATION_DELAY milliseconds
+                } else {
+                    isRotationInProgress = false; // Rotation completed, set the flag to false
+                }
+            }
+        };
+        write.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                try {
+                    OutputStreamWriter outputStreamWriter = new OutputStreamWriter(getContext().openFileOutput("config.txt", Context.MODE_PRIVATE));
+                    outputStreamWriter.write(sbb.toString());
+                    write.setText(sbb.toString());
+                    outputStreamWriter.close();
+                } catch (IOException e) {
+                    Log.e("Exception", "File write failed: " + e.toString());
+                }
+            }
+        });
+        vehicleChange();
 
         Log.d("status", "onCreateView:home" + SteeringVariables.home_thread_flag.toString());
         Log.d("status", "onCreateView:status" + SteeringVariables.status_thread_flag.toString());
@@ -250,7 +312,7 @@ public class HomeFragment extends Fragment {
                 public boolean onTouch(View v, MotionEvent event) {
                     float x = event.getX();
                     float y = event.getY();
-                    float touchAngle = calculateAngle(x, y);
+                    touchAngle = calculateAngle(x, y);
 
                     switch (event.getAction()) {
                         case MotionEvent.ACTION_DOWN:
@@ -263,55 +325,58 @@ public class HomeFragment extends Fragment {
 // Inside MotionEvent.ACTION_MOVE case:
 
                         case MotionEvent.ACTION_MOVE:
-                            float rotationAngleDiff = touchAngle - initialTouchAngle;
-                            // Check if the rotation step is greater than the threshold
-                            if (Math.abs(rotationAngleDiff) >= TOUCH_SENSITIVITY_THRESHOLD) {
-                                // Calculate the new rotation angle
-                                currentRotationAngle += (rotationAngleDiff > 0) ? ROTATION_STEP : -ROTATION_STEP;
-                                // Ensure the rotation angle is within 360 degrees
-                                currentRotationAngle = Math.min(MAX_ROTATION_ANGLE, Math.max(-MAX_ROTATION_ANGLE, currentRotationAngle));
+                            rotationAngleProcess();
+                            float vibrationIntensity = calculateVibrationIntensity(currentRotationAngle);
+                            startVibration(vibrationIntensity);
 
-                                // Add the angle to the uniqueAnglesSet (filtering out duplicates)
-                                uniqueAnglesSet.add(currentRotationAngle);
-
-                                // Update the steering wheel rotation
-                                steeringwheel.setRotation(currentRotationAngle);
-                                rotateLWheel(currentRotationAngle);
-                                // Update the angle TextView
-                                angletext.setText("Angles: " + uniqueAnglesSet.toString());
-
-                                // Prepare the data to be sent over Bluetooth
-                                StringBuilder angleData = new StringBuilder();
-                                for (Float angle : uniqueAnglesSet) {
-                                    angleData.append(angle).append(","); // Separate angles with commas
-                                }
-
-                                // Convert the StringBuilder to String and send it over Bluetooth
-                                byte[] formattedData = formatAndConvertData(currentRotationAngle);
-
-                                // Convert the formattedData string to bytes and send it over Bluetooth three times
-//                                byte[] formattedDataBytes = hexStringToByteArray(formattedData);
-                                Log.d("value steerin variable data: ", "data1 " + SteeringVariables.data5[0] + "data2 " + SteeringVariables.data5[1] + "sign " + SteeringVariables.data3);
-
-                                //for (int i = 0; i < 3; i++) {
-//                                SteeringVariables.data3 = formattedDataBytes;
-
-                                if (SteeringVariables.sendReceive != null) {
-//                                        SteeringVariables.sendReceive.write(formattedDataBytes);
-//                                        SteeringVariables.data3 = formattedDataBytes;
-                                    // Your other actions after sending the data
-                                } else {
-                                    // Handle the case where Bluetooth connection or message sending is not available
-                                }
-                                // }
-
-                                // Update the initial touch angle
-                                initialTouchAngle = touchAngle;
-                            }
                             break;
 
 
                         case MotionEvent.ACTION_UP:
+                            touchAngle = 0f;
+                            initialTouchAngle = 0f;
+                            currentRotationAngle = 0f;
+                            SteeringVariables.release = true;
+                            stopVibration();
+                            angleSet.clear();
+                            if ("on".equals(SteeringVariables.steeringauto) && !isRotationInProgress) {
+                                // Enable auto rotation and start rotation after ROTATION_DELAY milliseconds
+                                rotationHandler.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        float rotationAngleDiff = touchAngle - initialTouchAngle;
+                                        // Check if the rotation step is greater than the threshold
+                                        if (Math.abs(rotationAngleDiff) >= TOUCH_SENSITIVITY_THRESHOLD) {
+                                            // Calculate the new rotation angle
+                                            currentRotationAngle += (rotationAngleDiff > 0) ? ROTATION_STEP : -ROTATION_STEP;
+                                            // Ensure the rotation angle is within 360 degrees
+                                            currentRotationAngle = Math.min(MAX_ROTATION_ANGLE, Math.max(-MAX_ROTATION_ANGLE, currentRotationAngle));
+
+
+                                        }
+                                        Float currAngle = currentRotationAngle;
+
+                                        for (float i=currAngle;i>=0;i-=10){
+                                            if (anglelist.contains(i)) {
+
+                                            } else {
+                                                anglelist.add(i);
+                                            }
+                                            Log.d(TAG, "run: "+anglelist.toString());
+                                        }
+                                        rotateSteeringWheel(0);
+                                        vehicleChange();
+//                                        rotateLWheel(Float.parseFloat(temp.toString()));
+                                        ObjectAnimator rotateAnimator1 = ObjectAnimator.ofFloat(wheelL, "rotation", wheelL.getRotation(), Float.parseFloat("0"));
+                                        rotateAnimator1.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
+                                        rotateAnimator1.start();
+                                        ObjectAnimator rotateAnimator2 = ObjectAnimator.ofFloat(wheelR, "rotation", wheelR.getRotation(), Float.parseFloat("0"));
+                                        rotateAnimator2.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
+                                        rotateAnimator2.start();
+                                         // Rotate to 0 degrees
+                                    }
+                                }, ROTATION_DELAY);
+                            }
                             // Clear the angle set when touch is released
                             angleSet.clear();
                             break;
@@ -330,6 +395,92 @@ public class HomeFragment extends Fragment {
         });
         return view;
 
+    }
+
+    public void rotationAngleProcess(){
+
+        float rotationAngleDiff = touchAngle - initialTouchAngle;
+        // Check if the rotation step is greater than the threshold
+        if (Math.abs(rotationAngleDiff) >= TOUCH_SENSITIVITY_THRESHOLD) {
+            // Calculate the new rotation angle
+            currentRotationAngle += (rotationAngleDiff > 0) ? ROTATION_STEP : -ROTATION_STEP;
+            // Ensure the rotation angle is within 360 degrees
+            currentRotationAngle = Math.min(MAX_ROTATION_ANGLE, Math.max(-MAX_ROTATION_ANGLE, currentRotationAngle));
+
+            // Add the angle to the uniqueAnglesSet (filtering out duplicates)
+            uniqueAnglesSet.add(currentRotationAngle);
+
+            // Update the steering wheel rotation
+            steeringwheel.setRotation(currentRotationAngle);
+            rotateLWheel(currentRotationAngle);
+            // Update the angle TextView
+            angletext.setText("Angles: " + uniqueAnglesSet.toString());
+
+            // Prepare the data to be sent over Bluetooth
+            StringBuilder angleData = new StringBuilder();
+            for (Float angle : uniqueAnglesSet) {
+                angleData.append(angle).append(","); // Separate angles with commas
+            }
+
+            byte[] formattedData = formatAndConvertData(currentRotationAngle);
+
+            Log.d("value steerin variable data: ", "data1 " + SteeringVariables.data5[0] + "data2 " + SteeringVariables.data5[1] + "sign " + SteeringVariables.data3);
+
+            initialTouchAngle = touchAngle;
+        }
+    }
+
+    private void stopVibration() {
+        Vibrator vibrator = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
+        if (vibrator != null) {
+            // Cancel ongoing vibrations
+            vibrator.cancel();
+        }
+    }
+
+    private void startVibration(float intensity) {
+        Vibrator vibrator = (Vibrator) getActivity().getSystemService(Context.VIBRATOR_SERVICE);
+
+        if (vibrator != null && vibrator.hasVibrator()) {
+            // Calculate the vibration duration based on intensity (assuming VIBRATION_DURATION is the total duration)
+            long vibrationDuration = Math.max(1, (long) (VIBRATION_DURATION * intensity));
+
+            // Create a vibration pattern with the calculated duration
+            long[] pattern = { 0, vibrationDuration };
+            // Vibrate with the pattern and default amplitude
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                vibrator.vibrate(VibrationEffect.createWaveform(pattern, -1));
+            }
+        }
+
+    }
+
+    private void rotateSteeringWheel(float targetAngle) {
+        ObjectAnimator rotateAnimator = ObjectAnimator.ofFloat(steeringwheel, "rotation", steeringwheel.getRotation(), targetAngle);
+        rotateAnimator.setDuration(ROTATION_DELAY); // Set the duration for the rotation animation (in milliseconds)
+        rotateAnimator.start();
+        touchAngle=0f;
+    }
+
+    private float calculateVibrationIntensity(float angle) {
+        // Calculate intensity based on the rotation angle
+        float maxAngle = MAX_ROTATION_ANGLE; // Assuming MAX_ROTATION_ANGLE is the maximum angle
+        float minAngle = -MAX_ROTATION_ANGLE; // Assuming 0 is the minimum angle
+
+        // If the angle is 0, vibrate with intensity 1 for 1 second
+        if (angle == 0) {
+            return 2f;
+        }
+
+        // If the angle is at its maximum, vibrate with intensity 1f for 1 second
+        if (angle >= maxAngle) {
+            return 2f;
+        }
+        if (angle == minAngle) {
+            return 2f;
+        }
+        // For other angles, use a fixed intensity (adjust this value as needed)
+        return 0.2f;
     }
 
     @Override
@@ -360,6 +511,8 @@ public class HomeFragment extends Fragment {
             SteeringVariables.data3 = 0x00;
         }
 
+
+
         Log.d("value11", "angle2 : " + angleValue);
 
         String hexAngle = Integer.toHexString(angleValue);
@@ -386,6 +539,29 @@ public class HomeFragment extends Fragment {
 
     }
 
+    public static void vehicleChange(){
+        if (SteeringVariables.vehicle.equals("truck")){
+            wheelL = l1wheel;
+            wheelR = r1wheel;
+            truckbody.setVisibility(View.VISIBLE);
+            tractorbody.setVisibility(View.GONE);
+            carbody.setVisibility(View.GONE);
+        }
+        else if (SteeringVariables.vehicle.equals("tractor")){
+            wheelL = l2wheel;
+            wheelR = r2wheel;
+            truckbody.setVisibility(View.GONE);
+            tractorbody.setVisibility(View.VISIBLE);
+            carbody.setVisibility(View.GONE);
+        }else {
+            wheelL = lwheel;
+            wheelR = rwheel;
+            truckbody.setVisibility(View.GONE);
+            tractorbody.setVisibility(View.GONE);
+            carbody.setVisibility(View.VISIBLE);
+        }
+    }
+
     private byte[] hexStringToByteArray(String s) {
         // Remove commas and any other unwanted characters
         s = s.replaceAll("[^A-Fa-f0-9]", "");
@@ -410,7 +586,6 @@ public class HomeFragment extends Fragment {
 //        SteeringVariables.data5 = data;
         return data;
     }
-
 
     public static void updAngle() {
         MAX_ROTATION_ANGLE = Float.parseFloat(SteeringVariables.max_angle);
@@ -513,8 +688,8 @@ public class HomeFragment extends Fragment {
         float leftWheelRotation = Math.max(-maxWheelRotation, Math.min(maxWheelRotation, rotationAngle / divisor));
 
         // Rotate the lwheel and rwheel images based on the calculated rotation angle
-        lwheel.setRotation(leftWheelRotation);
-        rwheel.setRotation(leftWheelRotation);
+        wheelL.setRotation(leftWheelRotation);
+        wheelR.setRotation(leftWheelRotation);
     }
 
     private int calculateDivisor(float angle) {
@@ -875,16 +1050,16 @@ public class HomeFragment extends Fragment {
                     connectStatus.setText("Connection Failed");
                     break;
                 case STATE_MESSAGE_RECEIVED:
-
                     byte[] readBuff = (byte[]) msg.obj;
                     String tempMsg = new String(readBuff, 0, msg.arg1);
                     String hexString = bytesToHex(readBuff);
                     Log.d("value","Received msg "+byteToHex(SteeringVariables.RxSignal));
-
                     if(byteToHex(SteeringVariables.RxSignal).toLowerCase().equals("3e")){
+                        SteeringVariables.bluetoothstatus = true;
                         write.setText("POS");
                     }
                     else if(byteToHex(SteeringVariables.RxSignal).toLowerCase().equals("7e")){
+                        SteeringVariables.bluetoothstatus = false;
                         write.setText("NEG");
                     }
                     break;

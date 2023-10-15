@@ -32,7 +32,14 @@
                 android:clickable="true"
                 android:layout_alignParentEnd="true" />
 
-
+            <ImageView
+                android:id="@+id/connectStatus"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:src="@drawable/grnbtn"
+                android:layout_gravity="right"
+                android:layout_weight="1"
+                />
         </androidx.appcompat.widget.Toolbar>
 
         <FrameLayout
@@ -46,7 +53,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="gone"
->
+            >
 
             <com.google.android.material.bottomappbar.BottomAppBar
                 android:layout_width="match_parent"
@@ -73,8 +80,8 @@
 
     </RelativeLayout>
 
-        <!-- this the navigation view which draws and shows the navigation drawer -->
-        <!-- include the menu created in the menu folder -->
+    <!-- this the navigation view which draws and shows the navigation drawer -->
+    <!-- include the menu created in the menu folder -->
 
     <com.google.android.material.navigation.NavigationView
         android:layout_width="wrap_content"
@@ -86,7 +93,7 @@
         android:backgroundTint="@color/dark_grey"
         app:itemTextColor="@color/white"
         app:itemIconTint="@color/white"
-    >
+        >
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -132,13 +139,5 @@
         </LinearLayout>
 
     </com.google.android.material.navigation.NavigationView>
-
-
-
-
-
-
-
-
 
 </androidx.drawerlayout.widget.DrawerLayout>
