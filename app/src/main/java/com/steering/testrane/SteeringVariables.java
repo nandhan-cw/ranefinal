@@ -24,7 +24,7 @@ public class SteeringVariables {
         currentFragment = fragment;
     }
     public static Boolean release = false;
-    public static Boolean bluetoothstatus = false;
+    public static Boolean bluetoothstatus = true;
     public static byte RxSignal;
     public static String receivedSignal="";
     public static byte startId = 0x40;

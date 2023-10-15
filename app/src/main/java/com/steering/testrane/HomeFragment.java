@@ -58,6 +58,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
@@ -102,6 +103,7 @@ public class HomeFragment extends Fragment {
     static final int STATE_CONNECTED = 3;
     static final int STATE_CONNECTION_FAILED = 4;
     static final int STATE_MESSAGE_RECEIVED = 5;
+    static final int STATE_CANCELLED=7;
     int MY_BLUETOOTH_PERMISSION_REQUEST = 1;
 
     int REQUEST_ENABLE_BLUETOOTH = 1;
@@ -126,12 +128,55 @@ public class HomeFragment extends Fragment {
     private static final long VIBRATION_DURATION = 100;
     boolean isRotationInProgress = false;
     private static final long ROTATION_DELAY = 2000;
+    SharedPreferences sharedPreferences;
     @SuppressLint("MissingInflatedId")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_home, container, false);
         steeringwheel = view.findViewById(R.id.steeringwheel);
+
+//        sharedPreferences = getContext().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
+//        SteeringVariables.loginstatus = sharedPreferences.getString("loginstatus", "off");
+//        SteeringVariables.vehicle = sharedPreferences.getString("vehicle","car");
+//
+//        if(sharedPreferences.contains("steering_auto")){
+//            SteeringVariables.steeringauto=sharedPreferences.getString("steering_auto","off");
+//        }
+//        else{
+//            SteeringVariables.steeringauto="off";
+//        }
+//        if(sharedPreferences.contains("max_angle")){
+//            SteeringVariables.max_angle=sharedPreferences.getString("max_angle","180");
+//        }else{
+//            SteeringVariables.max_angle="180";
+//        }
+//        if(sharedPreferences.contains("vehicle")){
+//            SteeringVariables.vehicle=sharedPreferences.getString("vehicle","car");
+//        }else{
+//            SteeringVariables.vehicle="car";
+//        }
+//        if(sharedPreferences.contains("tx") && sharedPreferences.contains("rx")) {
+//            String hexString = sharedPreferences.getString("tx", "70E");
+//            int decimalValue = Integer.parseInt(hexString, 16);
+//            short shortValue = (short) decimalValue;
+//            SteeringVariables.frameId1 = shortValue;
+//
+//            String hexString1 = sharedPreferences.getString("rx", "71E");
+//            int decimalValue1 = Integer.parseInt(hexString1, 16);
+//            short shortValue1 = (short) decimalValue1;
+//            SteeringVariables.frameIdRX = shortValue1;
+//        }
+//        else{
+//            SteeringVariables.frameId1 = 0x70E;
+//            SteeringVariables.frameIdRX = 0x71E;
+//        }
+
+        SteeringVariables.home_thread_flag = true;
+        SteeringVariables.status_thread_flag = false;
+
+        Log.d("check","flag "+SteeringVariables.home_thread_flag);
+
         angletext = view.findViewById(R.id.angletext);
         connectStatus = view.findViewById(R.id.connectStatus);
         bltbtn = view.findViewById(R.id.bltbtn);
@@ -149,13 +194,14 @@ public class HomeFragment extends Fragment {
 
 
         final AudioManager audioManager = (AudioManager) getActivity().getSystemService(Context.AUDIO_SERVICE);
+        Log.d("dataa",SteeringVariables.max_angle);
         MAX_ROTATION_ANGLE = Float.parseFloat(SteeringVariables.max_angle);
-        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE);
+        sharedPreferences = getActivity().getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE);
         SteeringVariables.steeringStatus = sharedPreferences.getString("steeringStatus", "not_locked");
         SteeringVariables.max_angle = sharedPreferences.getString("max_angle", "0");
 
-        SteeringVariables.home_thread_flag= true;
-        SteeringVariables.status_thread_flag=false;
+//        SteeringVariables.home_thread_flag= true;
+//        SteeringVariables.status_thread_flag=false;
 
         l1wheel = view.findViewById(R.id.l1wheel);
         r1wheel = view.findViewById(R.id.r1wheel);
@@ -169,6 +215,37 @@ public class HomeFragment extends Fragment {
         tractorbody = view.findViewById(R.id.tractorbody);
         Handler handler = new Handler();
         anglelist = new ArrayList();
+
+
+
+        byte[] datainitial = SteeringVariables.data5; // 2-byte array representing a 16-bit integer
+        float floatValue;
+        // Convert little-endian 16-bit integer to float manually
+//        short shortValue = (short) ((datainitial[0] & 0xFF) << 8 | (datainitial[1] & 0xFF));
+        int decimalValue = (datainitial[0] & 0xFF) << 8 | (datainitial[1] & 0xFF);
+        if (SteeringVariables.data3 == 0x00 ){
+            floatValue = (float) decimalValue;
+        }else{
+            floatValue = (float) (-decimalValue);
+        }
+        Log.d("check", "onCreateView: "+floatValue);
+
+//        touchAngle = 0f;
+        initialTouchAngle = floatValue;
+        currentRotationAngle = floatValue;
+
+        rotationAngleProcess();
+        vehicleChange();
+        rotateLWheel(floatValue);
+
+        if(SteeringVariables.bluetooth){
+            bltbtn.setImageResource(R.drawable.baseline_bluetooth_24);
+            int blueColor = ContextCompat.getColor(getContext(), R.color.blue); // R.color.blue should be defined in your resources
+            PorterDuff.Mode mode = PorterDuff.Mode.SRC_ATOP;
+            bltbtn.setColorFilter(blueColor, mode);
+        }
+
+
 
         Runnable rotateToZero = new Runnable() {
             @Override
@@ -198,7 +275,6 @@ public class HomeFragment extends Fragment {
         });
         vehicleChange();
 
-        Log.d("status", "onCreateView:home" + SteeringVariables.home_thread_flag.toString());
         Log.d("status", "onCreateView:status" + SteeringVariables.status_thread_flag.toString());
 
 
@@ -207,6 +283,9 @@ public class HomeFragment extends Fragment {
         }
         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.BLUETOOTH_CONNECT}, 2);
+        }
+        if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.BLUETOOTH_SCAN}, 3);
         }
 
         // Check if Bluetooth is enabled and request to enable if not
@@ -333,13 +412,13 @@ public class HomeFragment extends Fragment {
 
 
                         case MotionEvent.ACTION_UP:
-                            touchAngle = 0f;
-                            initialTouchAngle = 0f;
-                            currentRotationAngle = 0f;
                             SteeringVariables.release = true;
                             stopVibration();
                             angleSet.clear();
                             if ("on".equals(SteeringVariables.steeringauto) && !isRotationInProgress) {
+                                touchAngle = 0f;
+                                initialTouchAngle = 0f;
+                                currentRotationAngle = 0f;
                                 // Enable auto rotation and start rotation after ROTATION_DELAY milliseconds
                                 rotationHandler.postDelayed(new Runnable() {
                                     @Override
@@ -356,16 +435,19 @@ public class HomeFragment extends Fragment {
                                         }
                                         Float currAngle = currentRotationAngle;
 
+
                                         for (float i=currAngle;i>=0;i-=10){
                                             if (anglelist.contains(i)) {
 
                                             } else {
                                                 anglelist.add(i);
+
                                             }
                                             Log.d(TAG, "run: "+anglelist.toString());
                                         }
-                                        rotateSteeringWheel(0);
-                                        vehicleChange();
+
+
+
 //                                        rotateLWheel(Float.parseFloat(temp.toString()));
                                         ObjectAnimator rotateAnimator1 = ObjectAnimator.ofFloat(wheelL, "rotation", wheelL.getRotation(), Float.parseFloat("0"));
                                         rotateAnimator1.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
@@ -373,10 +455,60 @@ public class HomeFragment extends Fragment {
                                         ObjectAnimator rotateAnimator2 = ObjectAnimator.ofFloat(wheelR, "rotation", wheelR.getRotation(), Float.parseFloat("0"));
                                         rotateAnimator2.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
                                         rotateAnimator2.start();
-                                         // Rotate to 0 degrees
+                                        rotateSteeringWheel(0); // Rotate to 0 degrees
+                                        touchAngle=0f;
                                     }
                                 }, ROTATION_DELAY);
                             }
+
+                            SteeringVariables.home_thread_flag=false;
+
+                            for(int i=0; i<anglelist.size(); i++) {
+//                                    Log.d("status","home while()");
+                                byte[] tempb = formatAndConvertData((Float) anglelist.get(i));
+                                SteeringVariables.data5 = tempb;
+                                try {
+                                    byte[] hexData1 = {SteeringVariables.startId};
+                                    byte[] frameIdRx = convertShortToBytes(SteeringVariables.frameIdRX);
+                                    byte[] hexData2 = {SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3};
+                                    byte[] angleData = SteeringVariables.data5;
+//                                        Log.d("data","2: "+SteeringVariables.data5[0]+" 4: "+SteeringVariables.data5[1]);
+                                    byte[] hexData3 = {SteeringVariables.data6, SteeringVariables.data7, SteeringVariables.data8, SteeringVariables.endId1, SteeringVariables.endId2};
+
+                                    int totalLength = frameIdRx.length + hexData1.length + hexData2.length + angleData.length + hexData3.length;
+
+                                    ///////// rx byte[]
+
+                                    byte[] concatenatedArrayRX = new byte[totalLength];
+
+                                    int offsetrx = 0;
+
+                                    System.arraycopy(hexData1, 0, concatenatedArrayRX, offsetrx, hexData1.length);
+                                    offsetrx += hexData1.length;
+
+                                    System.arraycopy(frameIdRx, 0, concatenatedArrayRX, offsetrx, frameIdRx.length);
+                                    offsetrx += frameIdRx.length;
+
+                                    System.arraycopy(hexData2, 0, concatenatedArrayRX, offsetrx, hexData2.length);
+                                    offsetrx += hexData2.length;
+
+                                    System.arraycopy(SteeringVariables.data5, 0, concatenatedArrayRX, offsetrx, SteeringVariables.data5.length);
+                                    offsetrx += SteeringVariables.data5.length;
+
+                                    System.arraycopy(hexData3, 0, concatenatedArrayRX, offsetrx, hexData3.length);
+                                    if(SteeringVariables.home_thread_flag==true){
+                                        SteeringVariables.sendReceive.write(concatenatedArrayRX);
+                                    }
+//                                        byte[] testval = {0x40,0x07,0x1E,0x08,0x1,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x0D,0x0A};
+//                                    Thread.sleep(500); // Delay for 1 second (1000 milliseconds)
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                            if ("on".equals(SteeringVariables.steeringauto) && !isRotationInProgress){
+                                SteeringVariables.data5 = new byte[]{0x00, 0x00};
+                            }
+                            SteeringVariables.home_thread_flag=true;
                             // Clear the angle set when touch is released
                             angleSet.clear();
                             break;
@@ -389,8 +521,20 @@ public class HomeFragment extends Fragment {
         bltbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if(SteeringVariables.bluetooth){
+//                    bluetoothAdapter.
+//                    ClientClass clientClass = new ClientClass(SteeringVariables.device);
+                    try {
+                        ClientClass clientClass = new ClientClass(SteeringVariables.device);
+                        clientClass.cancel();
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
 
-                blueToothListPopup(getContext());
+                }else{
+                    blueToothListPopup(getContext());
+
+                }
             }
         });
         return view;
@@ -486,6 +630,7 @@ public class HomeFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
+        SteeringVariables.data8=0x00;
         if (mediaPlayer != null && mediaPlayer.isPlaying()) {
             mediaPlayer.pause();
         }
@@ -510,9 +655,6 @@ public class HomeFragment extends Fragment {
         else {
             SteeringVariables.data3 = 0x00;
         }
-
-
-
         Log.d("value11", "angle2 : " + angleValue);
 
         String hexAngle = Integer.toHexString(angleValue);
@@ -741,6 +883,10 @@ public class HomeFragment extends Fragment {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if(requestCode==3){
+//            Toast.makeText(getContext(), "Bluetooth scan added", Toast.LENGTH_SHORT).show();
+        }
+
         if (requestCode == 2) {
             if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
 //                Toast.makeText(getContext(), "666666666", Toast.LENGTH_SHORT).show();
@@ -772,7 +918,7 @@ public class HomeFragment extends Fragment {
         }
     }
 
-    public static class ClientClass extends Thread {
+    public class ClientClass extends Thread {
         private BluetoothDevice device;
         private BluetoothSocket socket;
 
@@ -793,19 +939,16 @@ public class HomeFragment extends Fragment {
             }
         }
 
+        public void cancel() throws IOException {
+            socket.close();
+            Message message = Message.obtain();
+            message.what = STATE_CANCELLED;
+            handler.sendMessage(message);
+        }
+
         public void run() {
             try {
-//                if (ActivityCompat.checkSelfPermission(getContext(), android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-//                    return;
-//                }
-//                if (ActivityCompat.checkSelfPermission(getContext(), android.Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
-//                    ActivityCompat.requestPermissions(getActivity(), new String[]{android.Manifest.permission.BLUETOOTH_SCAN}, MY_BLUETOOTH_PERMISSION_REQUEST);
-//                }
                 if (inputStream != null && outputStream != null) {
-//                    if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
-//
-//                        ActivityCompat.requestPermissions(getActivity(), new String[]{android.Manifest.permission.BLUETOOTH_SCAN}, MY_BLUETOOTH_PERMISSION_REQUEST);
-//                    }
                     SteeringVariables.bluetoothAdapter.cancelDiscovery();
                     socket.connect();
                     SteeringVariables.bluetooth = true;
@@ -831,6 +974,7 @@ public class HomeFragment extends Fragment {
                     socket = (BluetoothSocket) SteeringVariables.device.getClass().getMethod("createRfcommSocketToServiceRecord",UUID.class).invoke(SteeringVariables.device, 1);
 //                    socket.getInputStream();
 //                    socket.getOutputStream();
+
                     socket.connect();
                     SteeringVariables.bluetooth = true;
                     Message message = Message.obtain();
@@ -850,7 +994,7 @@ public class HomeFragment extends Fragment {
             }
         }
     }
-    public static class ServerClass extends Thread {
+    public class ServerClass extends Thread {
         private BluetoothServerSocket serverSocket;
 
         public ServerClass() {
@@ -896,7 +1040,7 @@ public class HomeFragment extends Fragment {
             }
         }
     }
-    public static class SendReceive extends Thread {
+    public class SendReceive extends Thread {
         private final BluetoothSocket bluetoothSocket;
         private final InputStream inputStream;
         private final OutputStream outputStream;
@@ -943,10 +1087,17 @@ public class HomeFragment extends Fragment {
         }
     }
 
-    static Handler handler = new Handler(new Handler.Callback() {
+    Handler handler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
             switch (msg.what) {
+                case STATE_CANCELLED:
+                    SteeringVariables.bluetooth=false;
+                    SteeringVariables.sendReceive=null;
+
+                    bltbtn.setImageResource(R.drawable.baseline_bluetooth_disabled_24);
+                    connectStatus.setText("Not Connected");
+                    break;
                 case STATE_LISTENING:
                     connectStatus.setText("Listening");
                     break;
@@ -968,17 +1119,65 @@ public class HomeFragment extends Fragment {
                         }
                     }
                     if (SteeringVariables.sendReceive != null) {
+
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
-                                Log.d("status","home "+SteeringVariables.home_thread_flag);
-                                while (true && SteeringVariables.home_thread_flag==true) {
-                                    Log.d("status","home while()");
+//                                Log.d("data","2: "+SteeringVariables.data5[0]);
+                                while (true) {
+//                                    Log.d("status","home while()");
+                                    try {
+                                        byte[] hexData1 = {SteeringVariables.startId};
+                                        byte[] frameIdRx = convertShortToBytes(SteeringVariables.frameIdRX);
+                                        byte[] hexData2 = {SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3};
+                                        byte[] angleData = SteeringVariables.data5;
+//                                        Log.d("data","2: "+SteeringVariables.data5[0]+" 4: "+SteeringVariables.data5[1]);
+                                        byte[] hexData3 = {SteeringVariables.data6, SteeringVariables.data7, SteeringVariables.data8, SteeringVariables.endId1, SteeringVariables.endId2};
+
+                                        int totalLength = frameIdRx.length + hexData1.length + hexData2.length + angleData.length + hexData3.length;
+
+                                        ///////// rx byte[]
+
+                                        byte[] concatenatedArrayRX = new byte[totalLength];
+
+                                        int offsetrx = 0;
+
+                                        System.arraycopy(hexData1, 0, concatenatedArrayRX, offsetrx, hexData1.length);
+                                        offsetrx += hexData1.length;
+
+                                        System.arraycopy(frameIdRx, 0, concatenatedArrayRX, offsetrx, frameIdRx.length);
+                                        offsetrx += frameIdRx.length;
+
+                                        System.arraycopy(hexData2, 0, concatenatedArrayRX, offsetrx, hexData2.length);
+                                        offsetrx += hexData2.length;
+
+                                        System.arraycopy(SteeringVariables.data5, 0, concatenatedArrayRX, offsetrx, SteeringVariables.data5.length);
+                                        offsetrx += SteeringVariables.data5.length;
+
+                                        System.arraycopy(hexData3, 0, concatenatedArrayRX, offsetrx, hexData3.length);
+                                        if(SteeringVariables.home_thread_flag==true){
+                                            SteeringVariables.sendReceive.write(concatenatedArrayRX);
+                                        }
+//                                        byte[] testval = {0x40,0x07,0x1E,0x08,0x1,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x0D,0x0A};
+                                        Thread.sleep(500); // Delay for 1 second (1000 milliseconds)
+                                    } catch (InterruptedException e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }
+                        }).start();
+                        new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                while (true) {
+//                                    Log.d("status","home while()");
                                         try {
                                             byte[] frameId = convertShortToBytes(SteeringVariables.frameId1);
                                             byte[] hexData1 = {SteeringVariables.startId};
                                             byte[] hexData2 = {SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3};
                                             byte[] angleData = SteeringVariables.data5;
+//                                            Log.d("data","3: "+SteeringVariables.data5[0]+" 4: "+SteeringVariables.data5[1]);
+
                                             byte[] hexData3 = {SteeringVariables.data6, SteeringVariables.data7, SteeringVariables.data8, SteeringVariables.endId1, SteeringVariables.endId2};
 
                                             int totalLength = frameId.length + hexData1.length + hexData2.length + angleData.length + hexData3.length;
@@ -1000,35 +1199,12 @@ public class HomeFragment extends Fragment {
                                             offset += SteeringVariables.data5.length;
 
                                             System.arraycopy(hexData3, 0, concatenatedArray, offset, hexData3.length);
-
-
-                                            ///////// rx byte[]
-
-                                            byte[] frameIdRx = convertShortToBytes(SteeringVariables.frameIdRX);
-
-
-                                            byte[] concatenatedArrayRX = new byte[totalLength];
-
-                                            int offsetrx = 0;
-
-                                            System.arraycopy(hexData1, 0, concatenatedArrayRX, offsetrx, hexData1.length);
-                                            offsetrx += hexData1.length;
-
-                                            System.arraycopy(frameIdRx, 0, concatenatedArrayRX, offsetrx, frameIdRx.length);
-                                            offsetrx += frameIdRx.length;
-
-                                            System.arraycopy(hexData2, 0, concatenatedArrayRX, offsetrx, hexData2.length);
-                                            offsetrx += hexData2.length;
-
-                                            System.arraycopy(SteeringVariables.data5, 0, concatenatedArrayRX, offsetrx, SteeringVariables.data5.length);
-                                            offsetrx += SteeringVariables.data5.length;
-
-                                            System.arraycopy(hexData3, 0, concatenatedArrayRX, offsetrx, hexData3.length);
+                                            if(SteeringVariables.home_thread_flag==true){
+                                                SteeringVariables.sendReceive.write(concatenatedArray);
+                                            }
 
 //                                        byte[] testval = {0x40,0x07,0x1E,0x08,0x1,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x0D,0x0A};
-                                            SteeringVariables.sendReceive.write(concatenatedArray);
-                                            SteeringVariables.sendReceive.write(concatenatedArrayRX);
-                                            Thread.sleep(2000); // Delay for 1 second (1000 milliseconds)
+                                            Thread.sleep(200); // Delay for 1 second (1000 milliseconds)
                                         } catch (InterruptedException e) {
                                             e.printStackTrace();
                                         }
@@ -1042,9 +1218,9 @@ public class HomeFragment extends Fragment {
                         // Handle the case where Bluetooth connection or message sending is not available
                     }
                     bltbtn.setImageResource(R.drawable.baseline_bluetooth_24);
-//                    int blueColor = ContextCompat.getColor(getContext(), R.color.blue); // R.color.blue should be defined in your resources
-//                    PorterDuff.Mode mode = PorterDuff.Mode.SRC_ATOP;
-//                    bltbtn.setColorFilter(blueColor, mode);
+                    int blueColor = ContextCompat.getColor(getContext(), R.color.blue); // R.color.blue should be defined in your resources
+                    PorterDuff.Mode mode = PorterDuff.Mode.SRC_ATOP;
+                    bltbtn.setColorFilter(blueColor, mode);
                     break;
                 case STATE_CONNECTION_FAILED:
                     connectStatus.setText("Connection Failed");

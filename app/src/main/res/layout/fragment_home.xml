@@ -60,34 +60,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@id/headerbtn"
-        android:layout_above="@id/steeringwheel">
+        android:layout_above="@id/indicator_keys">
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:id="@+id/indicator_keys"
-                android:layout_below="@id/vehicles"
-                >
-                <ImageView
-                    android:id="@+id/leftkey"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:src="@drawable/leftkey"/>
 
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:layout_weight="1"></View>
-                <ImageView
-                    android:id="@+id/rightkey"
-                    android:layout_width="50dp"
-                    android:layout_height="50dp"
-                    android:src="@drawable/rightkey"/>
-            </LinearLayout>
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -131,13 +109,16 @@
                         android:src="@drawable/try2" />
 
                 </RelativeLayout>
-
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:id="@+id/truckbody"
                     android:visibility="gone">
+
+
                     <!-- Car Body (Centered in the Parent) -->
+
+
                     <!-- Left Wheel (Aligned to the Left of Car Body) -->
                     <ImageView
                         android:id="@+id/l1wheel"
@@ -212,6 +193,29 @@
         </RelativeLayout>
 
     </ScrollView>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:id="@+id/indicator_keys"
+        android:layout_above="@id/steeringwheel"
+        >
+        <ImageView
+            android:id="@+id/leftkey"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@drawable/leftkey"/>
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1"></View>
+        <ImageView
+            android:id="@+id/rightkey"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@drawable/rightkey"/>
+    </LinearLayout>
     <ImageView
         android:id="@+id/steeringwheel"
         android:layout_width="200dp"

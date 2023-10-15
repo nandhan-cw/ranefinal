@@ -45,6 +45,12 @@ public class StatusFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_status, container, false);
         steerControl = view.findViewById(R.id.steercontrol);
+
+        SteeringVariables.home_thread_flag = false;
+        SteeringVariables.status_thread_flag = true;
+
+        Log.d("check","flag "+SteeringVariables.status_thread_flag);
+
         astatus = view.findViewById(R.id.astatus);
         mstatus = view.findViewById(R.id.mstatus);
         tstatus= view.findViewById(R.id.tstatus);
@@ -62,8 +68,8 @@ public class StatusFragment extends Fragment {
             }
         });
 
-        SteeringVariables.home_thread_flag= false;
-        SteeringVariables.status_thread_flag=true;
+//        SteeringVariables.home_thread_flag= false;
+//        SteeringVariables.status_thread_flag=true;
 
         Log.d("status", "onCreateView:status home" + SteeringVariables.home_thread_flag.toString());
         Log.d("status", "onCreateView:status status" + SteeringVariables.status_thread_flag.toString());
@@ -107,10 +113,6 @@ public class StatusFragment extends Fragment {
     }
 
     // Handle back press to navigate back to LockSteeringFragment
-
-
-//
-
 //    public static String bytesToHex(byte[] bytes) {
 //        StringBuilder sb = new StringBuilder(bytes.length * 2);
 //        Log.d("value","length: "+bytes.length);
@@ -219,32 +221,37 @@ public class StatusFragment extends Fragment {
                         if(HomeFragment.byteToHex(fourdata).toLowerCase().equals("3e")){
                             // change light to green in motor and ecu
                             mstatus.setText("ok");
+                            mstatus.setTextColor(getResources().getColor(R.color.green));
                             mlight.setImageResource(R.drawable.grnbtn);
                         }
                         else if(HomeFragment.byteToHex(fourdata).toLowerCase().equals("7e")){
                             // change light to red in motor and ecu
-                            mstatus.setText("no");
+                            mstatus.setText("err");
+                            mstatus.setTextColor(getResources().getColor(R.color.red));
                             mlight.setImageResource(R.drawable.redbtn);
                         }
                         if(HomeFragment.byteToHex(fivedata).toLowerCase().equals("3e")){
                             // change light to green in motor and ecu
                             estatus.setText("ok");
+                            estatus.setTextColor(getResources().getColor(R.color.green));
                             elight.setImageResource(R.drawable.grnbtn);
                         }
                         else if(HomeFragment.byteToHex(fivedata).toLowerCase().equals("7e")){
                             // change light to red in motor and ecu
-                            estatus.setText("no");
+                            estatus.setText("err");
+                            estatus.setTextColor(getResources().getColor(R.color.red));
                             elight.setImageResource(R.drawable.redbtn);
                         }
                     }
                     else if(onedata==0x04){
-                        if(HomeFragment.byteToHex(sevendata).toLowerCase().equals("3e")){
+                        if(HomeFragment.byteToHex(fourdata).toLowerCase().equals("3e")){
                             tstatus.setText("ok");
+                            tstatus.setTextColor(getResources().getColor(R.color.green));
                             tlight.setImageResource(R.drawable.grnbtn);
                         }
-                        else if(HomeFragment.byteToHex(sevendata).toLowerCase().equals("7e")){
-                            tstatus.setText("no");
-
+                        else if(HomeFragment.byteToHex(fourdata).toLowerCase().equals("7e")){
+                            tstatus.setText("err");
+                            tstatus.setTextColor(getResources().getColor(R.color.red));
                             tlight.setImageResource(R.drawable.redbtn);
                         }
                     }

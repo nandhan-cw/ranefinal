@@ -32,6 +32,12 @@ public class LockSteeringFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_lock_steering,container,false);
         RelativeLayout lockSteeringLayout = view.findViewById(R.id.locksteeringlayout);
+
+        SteeringVariables.home_thread_flag = true;
+        SteeringVariables.status_thread_flag = false;
+
+        Log.d("check","flag "+SteeringVariables.home_thread_flag+" flag "+SteeringVariables.status_thread_flag);
+
         lockedstatus = view.findViewById(R.id.lockedstatus);
         String lockvalue = (String) lockedstatus.getTag();
         statusbtn= view.findViewById(R.id.statusbtn);
@@ -39,8 +45,6 @@ public class LockSteeringFragment extends Fragment {
 //        Toast.makeText(getActivity(), "check - "+SteeringVariables.steeringStatus.toString(), Toast.LENGTH_SHORT).show();
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE);
         SteeringVariables.steeringStatus = sharedPreferences.getString("steeringStatus", "not_locked");
-
-        SteeringVariables.status_thread_flag =false;
 
         if (SteeringVariables.steeringStatus.equals("not_locked")) {
             lockicon.setImageResource(R.drawable.baseline_lock_open_24);
@@ -68,6 +72,7 @@ public class LockSteeringFragment extends Fragment {
 //                    Toast.makeText(getActivity(), "if steering status", Toast.LENGTH_SHORT).show();
                     SteeringVariables.steeringStatus = "locked";
                     lockedstatus.setText("UNLOCK");
+                    Toast.makeText(getContext(), "Locked", Toast.LENGTH_SHORT).show();
                     lockicon.setImageResource(R.drawable.baseline_lock_24);
                     lockedstatus.setBackgroundColor(R.color.grey);
                     lockedstatus.setBackgroundResource(R.drawable.button);
@@ -77,6 +82,7 @@ public class LockSteeringFragment extends Fragment {
                     SteeringVariables.steeringStatus = "not_locked";
                     lockedstatus.setText("LOCK");
                     lockicon.setImageResource(R.drawable.baseline_lock_open_24);
+                    Toast.makeText(getContext(), "Unlocked", Toast.LENGTH_SHORT).show();
                     lockicon.setColorFilter(getResources().getColor(R.color.white));
                     lockedstatus.setBackgroundColor(R.color.grey);
                     saveSteeringStatus("not_locked");
