@@ -98,12 +98,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 //        }
 
         if(sharedPreferences.contains("tx") && sharedPreferences.contains("rx")) {
-            String hexString = sharedPreferences.getString("tx", "0x70E");
+            String hexString = sharedPreferences.getString("tx", "70E");
             int decimalValue = Integer.parseInt(hexString, 16);
             short shortValue = (short) decimalValue;
             SteeringVariables.frameId1 = shortValue;
 
-            String hexString1 = sharedPreferences.getString("rx", "0x71E");
+            String hexString1 = sharedPreferences.getString("rx", "71E");
             int decimalValue1 = Integer.parseInt(hexString1, 16);
             short shortValue1 = (short) decimalValue1;
             SteeringVariables.frameIdRX = shortValue1;
@@ -526,12 +526,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         toggleButton.setChecked(SteeringVariables.steeringauto.equals("on"));  // Check toggle button based on SteeringVariables.steeringauto value
         LockSteeringFragment fragment = (LockSteeringFragment) getSupportFragmentManager().findFragmentById(R.id.lock);
 
-        String hexString = sharedPreferences.getString("tx","0x70E");
+        String hexString = sharedPreferences.getString("tx","70E");
         int decimalValue = Integer.parseInt(hexString, 16);
         short shortValue = (short) decimalValue;
         SteeringVariables.frameId1 = shortValue;
 
-        String hexString1 = sharedPreferences.getString("rx","0x71E");
+        String hexString1 = sharedPreferences.getString("rx","71E");
         int decimalValue1 = Integer.parseInt(hexString1, 16);
         short shortValue1 = (short) decimalValue1;
         SteeringVariables.frameIdRX = shortValue1;
@@ -544,12 +544,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             fragment.lockedstatus.setText(SteeringVariables.max_angle);
         }
         // Set tx EditText if txValue is not null
-        String txValue = sharedPreferences.getString("tx", "0x70E");
+        String txValue = sharedPreferences.getString("tx", "70E");
         if ( txValue!= null) {
             tx.setText(txValue.toUpperCase());
         }
 
-        String rxValue = sharedPreferences.getString("rx", "0x71E");
+        String rxValue = sharedPreferences.getString("rx", "71E");
         if ( rxValue!= null) {
             rx.setText(rxValue.toUpperCase());
         }
