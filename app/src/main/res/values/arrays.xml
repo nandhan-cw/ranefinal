@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="default_options">
+        <item>@string/car</item>
+        <item>@string/truck</item>
+        <item>@string/tractor</item>
+    </string-array>
+</resources>

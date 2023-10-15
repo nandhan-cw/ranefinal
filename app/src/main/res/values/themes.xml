@@ -25,5 +25,9 @@
         <item name="android:textStyle">bold</item>
         <item name="android:textColor">@android:color/holo_blue_dark</item>
     </style>
+    <style name="SpinnerDropdownTheme">
+        <item name="android:background">#3498db</item> <!-- Set blue background color here -->
+        <item name="android:textColor">#FFFFFF</item> <!-- Set white text color here -->
+    </style>
 
 </resources>

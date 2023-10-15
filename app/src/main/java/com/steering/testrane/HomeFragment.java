@@ -42,6 +42,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -64,7 +65,19 @@ import java.util.Set;
 import java.util.UUID;
 
 public class HomeFragment extends Fragment {
-    ImageView steeringwheel, bltbtn, leftkey, rightkey, volume, lwheel, rwheel;
+    ImageView steeringwheel;
+    ImageView bltbtn;
+    ImageView leftkey;
+    ImageView rightkey;
+    ImageView volume;
+    static ImageView lwheel;
+    static ImageView rwheel;
+    static ImageView l1wheel;
+    static ImageView r1wheel;
+    static ImageView l2wheel;
+    static ImageView r2wheel;
+    static ImageView wheelL;
+    static ImageView wheelR;
     BluetoothDevice device;
     TextView angletext, connectStatus;
     ProgressDialog progressDialog;
@@ -75,7 +88,9 @@ public class HomeFragment extends Fragment {
     private static final int TOUCH_SENSITIVITY_THRESHOLD = 10; // Touch sensitivity threshold
     private static final float ROTATION_STEP = 10f; // Rotation step in degrees
     private Set<Float> angleSet = new HashSet<>();
-
+    static RelativeLayout carbody;
+    static RelativeLayout truckbody;
+    static RelativeLayout tractorbody;
     ListView listView;
     BluetoothAdapter bluetoothAdapter;
     BluetoothDevice[] btArray;
@@ -110,6 +125,8 @@ public class HomeFragment extends Fragment {
     float touchAngle;
     ArrayList anglelist;
     Set<Float> uniqueAnglesSet;
+
+
     @SuppressLint("MissingInflatedId")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -127,11 +144,21 @@ public class HomeFragment extends Fragment {
         volume = view.findViewById(R.id.volume);
         lwheel = view.findViewById(R.id.lwheel);
         rwheel = view.findViewById(R.id.rwheel);
+        l1wheel = view.findViewById(R.id.l1wheel);
+        r1wheel = view.findViewById(R.id.r1wheel);
+        l2wheel = view.findViewById(R.id.l2wheel);
+        r2wheel = view.findViewById(R.id.r2wheel);
         Button write = view.findViewById(R.id.write);
         uniqueAnglesSet = new HashSet<>();
         touchAngle = 0f;
+        carbody = view.findViewById(R.id.carbody);
+        truckbody = view.findViewById(R.id.truckbody);
+        tractorbody = view.findViewById(R.id.tractorbody);
         Handler handler = new Handler();
         anglelist = new ArrayList();
+
+
+
         Runnable rotateToZero = new Runnable() {
             @Override
             public void run() {
@@ -158,7 +185,20 @@ public class HomeFragment extends Fragment {
                 }
             }
         });
+        vehicleChange();
 
+//        if (SteeringVariables.vehicle.equals("truck")){
+//            carbody.setVisibility(View.GONE);
+//            tractorbody.setVisibility(View.GONE);
+//            truckbody.setVisibility(View.VISIBLE);
+//        }else if(SteeringVariables.vehicle.equals("tractor")){
+//            carbody.setVisibility(View.GONE);
+//            truckbody.setVisibility(View.GONE);
+//            tractorbody.setVisibility(View.VISIBLE);
+//        } else {
+//            truckbody.setVisibility(View.GONE);
+//            tractorbody.setVisibility(View.GONE);
+//        }
 
 
         final AudioManager audioManager = (AudioManager) getActivity().getSystemService(Context.AUDIO_SERVICE);
@@ -406,10 +446,10 @@ public class HomeFragment extends Fragment {
                                         }
 
 //                                        rotateLWheel(Float.parseFloat(temp.toString()));
-                                        ObjectAnimator rotateAnimator1 = ObjectAnimator.ofFloat(lwheel, "rotation", lwheel.getRotation(), Float.parseFloat("0"));
+                                        ObjectAnimator rotateAnimator1 = ObjectAnimator.ofFloat(wheelL, "rotation", lwheel.getRotation(), Float.parseFloat("0"));
                                         rotateAnimator1.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
                                         rotateAnimator1.start();
-                                        ObjectAnimator rotateAnimator2 = ObjectAnimator.ofFloat(rwheel, "rotation", rwheel.getRotation(), Float.parseFloat("0"));
+                                        ObjectAnimator rotateAnimator2 = ObjectAnimator.ofFloat(wheelR, "rotation", rwheel.getRotation(), Float.parseFloat("0"));
                                         rotateAnimator2.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
                                         rotateAnimator2.start();
                                         rotateSteeringWheel(0); // Rotate to 0 degrees
@@ -480,6 +520,28 @@ public class HomeFragment extends Fragment {
         }
         // For other angles, use a fixed intensity (adjust this value as needed)
         return 0.2f;
+    }
+    public static void vehicleChange(){
+        if (SteeringVariables.vehicle.equals("truck")){
+            wheelL = l1wheel;
+            wheelR = r1wheel;
+            truckbody.setVisibility(View.VISIBLE);
+            tractorbody.setVisibility(View.GONE);
+            carbody.setVisibility(View.GONE);
+        }
+        else if (SteeringVariables.vehicle.equals("tractor")){
+            wheelL = l2wheel;
+            wheelR = r2wheel;
+            truckbody.setVisibility(View.GONE);
+            tractorbody.setVisibility(View.VISIBLE);
+            carbody.setVisibility(View.GONE);
+        }else {
+            wheelL = lwheel;
+            wheelR = rwheel;
+            truckbody.setVisibility(View.GONE);
+            tractorbody.setVisibility(View.GONE);
+            carbody.setVisibility(View.VISIBLE);
+        }
     }
 
     public void rotationAngleProcess(){
@@ -810,8 +872,8 @@ public class HomeFragment extends Fragment {
         float leftWheelRotation = Math.max(-maxWheelRotation, Math.min(maxWheelRotation, rotationAngle / divisor));
 
         // Rotate the lwheel and rwheel images based on the calculated rotation angle
-        lwheel.setRotation(leftWheelRotation);
-        rwheel.setRotation(leftWheelRotation);
+        wheelL.setRotation(leftWheelRotation);
+        wheelR.setRotation(leftWheelRotation);
     }
 
     private int calculateDivisor(float angle) {

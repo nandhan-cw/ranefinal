@@ -70,7 +70,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:id="@+id/indicator_keys"
-                android:layout_below="@id/carbody"
+                android:layout_below="@id/vehicles"
                 >
                 <ImageView
                     android:id="@+id/leftkey"
@@ -88,44 +88,132 @@
                     android:layout_height="50dp"
                     android:src="@drawable/rightkey"/>
             </LinearLayout>
-            <RelativeLayout
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:id="@+id/carbody">
+                android:orientation="vertical"
+                android:id="@+id/vehicles">
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/carbody"
+                    android:visibility="gone"
+                    >
 
 
-                <!-- Car Body (Centered in the Parent) -->
+                    <!-- Car Body (Centered in the Parent) -->
 
 
-                <!-- Left Wheel (Aligned to the Left of Car Body) -->
-                <ImageView
-                    android:id="@+id/lwheel"
-                    android:layout_height="70dp"
-                    android:layout_width="40dp"
-                    android:src="@drawable/car_l_wheel_1"
-                    android:layout_alignStart="@id/carImage"
-                    android:layout_marginTop="20dp"
-                    />
-                <!-- Right Wheel (Aligned to the Right of Car Body) -->
-                <ImageView
-                    android:id="@+id/rwheel"
-                    android:layout_width="40dp"
-                    android:layout_height="70dp"
-                    android:src="@drawable/car_l_wheel_1"
-                    android:layout_alignEnd="@id/carImage"
-                    android:layout_marginTop="20dp"
-                    />
+                    <!-- Left Wheel (Aligned to the Left of Car Body) -->
+                    <ImageView
+                        android:id="@+id/lwheel"
+                        android:layout_height="70dp"
+                        android:layout_width="40dp"
+                        android:src="@drawable/car_l_wheel_1"
+                        android:layout_alignStart="@id/carImage"
+                        android:layout_marginTop="20dp"
+                        />
+                    <!-- Right Wheel (Aligned to the Right of Car Body) -->
+                    <ImageView
+                        android:id="@+id/rwheel"
+                        android:layout_width="40dp"
+                        android:layout_height="70dp"
+                        android:src="@drawable/car_l_wheel_1"
+                        android:layout_alignEnd="@id/carImage"
+                        android:layout_marginTop="20dp"
+                        />
 
-                <ImageView
-                    android:id="@+id/carImage"
-                    android:layout_width="200dp"
-                    android:layout_height="300dp"
-                    android:layout_centerHorizontal="true"
-                    android:src="@drawable/try2" />
+                    <ImageView
+                        android:id="@+id/carImage"
+                        android:layout_width="200dp"
+                        android:layout_height="300dp"
+                        android:layout_centerHorizontal="true"
+                        android:src="@drawable/try2" />
 
-            </RelativeLayout>
+                </RelativeLayout>
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/truckbody"
+                    android:visibility="gone">
+
+
+                    <!-- Car Body (Centered in the Parent) -->
+
+
+                    <!-- Left Wheel (Aligned to the Left of Car Body) -->
+                    <ImageView
+                        android:id="@+id/l1wheel"
+                        android:layout_height="60dp"
+                        android:layout_width="40dp"
+                        android:src="@drawable/car_l_wheel_1"
+                        android:layout_alignStart="@id/truckImage"
+                        android:layout_marginTop="20dp"
+                        android:layout_marginLeft="10dp"
+                        />
+                    <!-- Right Wheel (Aligned to the Right of Car Body) -->
+                    <ImageView
+                        android:id="@+id/r1wheel"
+                        android:layout_width="40dp"
+                        android:layout_height="60dp"
+                        android:src="@drawable/car_l_wheel_1"
+                        android:layout_alignEnd="@id/truckImage"
+                        android:layout_marginTop="20dp"
+                        android:layout_marginRight="10dp"
+                        />
+
+                    <ImageView
+                        android:id="@+id/truckImage"
+                        android:layout_width="200dp"
+                        android:layout_height="300dp"
+                        android:layout_centerHorizontal="true"
+                        android:src="@drawable/truck" />
+
+                </RelativeLayout>
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/tractorbody"
+                   android:visibility="gone"
+                    >
+
+
+                    <!-- Car Body (Centered in the Parent) -->
+
+
+                    <!-- Left Wheel (Aligned to the Left of Car Body) -->
+                    <ImageView
+                        android:id="@+id/l2wheel"
+                        android:layout_height="60dp"
+                        android:layout_width="40dp"
+                        android:src="@drawable/car_l_wheel_1"
+                        android:layout_alignStart="@id/tractorImage"
+                        android:layout_marginTop="25dp"
+                        android:layout_marginLeft="33dp"
+                        />
+                    <!-- Right Wheel (Aligned to the Right of Car Body) -->
+                    <ImageView
+                        android:id="@+id/r2wheel"
+                        android:layout_width="40dp"
+                        android:layout_height="60dp"
+                        android:src="@drawable/car_l_wheel_1"
+                        android:layout_alignEnd="@id/tractorImage"
+                        android:layout_marginTop="25dp"
+                        android:layout_marginRight="33dp"
+                        />
+
+                    <ImageView
+                        android:id="@+id/tractorImage"
+                        android:layout_width="200dp"
+                        android:layout_height="300dp"
+                        android:layout_centerHorizontal="true"
+                        android:src="@drawable/tractor" />
+
+                </RelativeLayout>
+            </LinearLayout>
 
         </RelativeLayout>
+
     </ScrollView>
     <ImageView
         android:id="@+id/steeringwheel"
