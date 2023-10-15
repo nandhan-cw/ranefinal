@@ -91,7 +91,6 @@ public class HomeFragment extends Fragment {
     BluetoothDevice[] btArray;
 
 
-
     static InputStream inputStream;
     static OutputStream outputStream;
     StringBuilder sbb = new StringBuilder();
@@ -103,7 +102,7 @@ public class HomeFragment extends Fragment {
     static final int STATE_CONNECTED = 3;
     static final int STATE_CONNECTION_FAILED = 4;
     static final int STATE_MESSAGE_RECEIVED = 5;
-    static final int STATE_CANCELLED=7;
+    static final int STATE_CANCELLED = 7;
     int MY_BLUETOOTH_PERMISSION_REQUEST = 1;
 
     int REQUEST_ENABLE_BLUETOOTH = 1;
@@ -129,6 +128,7 @@ public class HomeFragment extends Fragment {
     boolean isRotationInProgress = false;
     private static final long ROTATION_DELAY = 2000;
     SharedPreferences sharedPreferences;
+
     @SuppressLint("MissingInflatedId")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -175,7 +175,7 @@ public class HomeFragment extends Fragment {
         SteeringVariables.home_thread_flag = true;
         SteeringVariables.status_thread_flag = false;
 
-        Log.d("check","flag "+SteeringVariables.home_thread_flag);
+        Log.d("check", "flag " + SteeringVariables.home_thread_flag);
 
         angletext = view.findViewById(R.id.angletext);
         connectStatus = view.findViewById(R.id.connectStatus);
@@ -192,9 +192,8 @@ public class HomeFragment extends Fragment {
         write = view.findViewById(R.id.write);
 
 
-
         final AudioManager audioManager = (AudioManager) getActivity().getSystemService(Context.AUDIO_SERVICE);
-        Log.d("dataa",SteeringVariables.max_angle);
+        Log.d("dataa", SteeringVariables.max_angle);
         MAX_ROTATION_ANGLE = Float.parseFloat(SteeringVariables.max_angle);
         sharedPreferences = getActivity().getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE);
         SteeringVariables.steeringStatus = sharedPreferences.getString("steeringStatus", "not_locked");
@@ -217,18 +216,17 @@ public class HomeFragment extends Fragment {
         anglelist = new ArrayList();
 
 
-
         byte[] datainitial = SteeringVariables.data5; // 2-byte array representing a 16-bit integer
         float floatValue;
         // Convert little-endian 16-bit integer to float manually
 //        short shortValue = (short) ((datainitial[0] & 0xFF) << 8 | (datainitial[1] & 0xFF));
         int decimalValue = (datainitial[0] & 0xFF) << 8 | (datainitial[1] & 0xFF);
-        if (SteeringVariables.data3 == 0x00 ){
+        if (SteeringVariables.data3 == 0x00) {
             floatValue = (float) decimalValue;
-        }else{
+        } else {
             floatValue = (float) (-decimalValue);
         }
-        Log.d("check", "onCreateView: "+floatValue);
+        Log.d("check", "onCreateView: " + floatValue);
 
 //        touchAngle = 0f;
         initialTouchAngle = floatValue;
@@ -238,13 +236,12 @@ public class HomeFragment extends Fragment {
         vehicleChange();
         rotateLWheel(floatValue);
 
-        if(SteeringVariables.bluetooth){
+        if (SteeringVariables.bluetooth) {
             bltbtn.setImageResource(R.drawable.baseline_bluetooth_24);
             int blueColor = ContextCompat.getColor(getContext(), R.color.blue); // R.color.blue should be defined in your resources
             PorterDuff.Mode mode = PorterDuff.Mode.SRC_ATOP;
             bltbtn.setColorFilter(blueColor, mode);
         }
-
 
 
         Runnable rotateToZero = new Runnable() {
@@ -288,14 +285,21 @@ public class HomeFragment extends Fragment {
             ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.BLUETOOTH_SCAN}, 3);
         }
 
+        if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+            // Permission not granted, request it
+            ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.BLUETOOTH_SCAN}, 3);
+        } else {
+            // Permission already granted, perform Bluetooth operations here
+        }
+
+
         // Check if Bluetooth is enabled and request to enable if not
 //        BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 //        SteeringVariables.bluetoothAdapter = bluetoothAdapter;
         if (SteeringVariables.bluetoothAdapter == null) {
             // Device doesn't support Bluetooth
             Toast.makeText(getContext(), "Bluetooth not supported on this device", Toast.LENGTH_SHORT).show();
-        }
-        else {
+        } else {
             if (!SteeringVariables.bluetoothAdapter.isEnabled()) {
                 Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
                 startActivityForResult(enableBtIntent, REQUEST_ENABLE_BLUETOOTH);
@@ -338,13 +342,12 @@ public class HomeFragment extends Fragment {
             }
         });
 
-        if(SteeringVariables.bluetooth == true){
+        if (SteeringVariables.bluetooth == true) {
             connectStatus.setText("Connected");
             Message message = Message.obtain();
             message.what = STATE_CONNECTED;
             handler.sendMessage(message);
-        }
-        else connectStatus.setText("Not Connected");
+        } else connectStatus.setText("Not Connected");
 
 // Method to send message via Bluetooth
 
@@ -382,8 +385,7 @@ public class HomeFragment extends Fragment {
 
         if (SteeringVariables.steeringStatus.equals("locked")) {
             steeringwheel.setEnabled(false);
-        }
-        else {
+        } else {
 
             steeringwheel.setEnabled(true);
             steeringwheel.setOnTouchListener(new View.OnTouchListener() {
@@ -436,16 +438,15 @@ public class HomeFragment extends Fragment {
                                         Float currAngle = currentRotationAngle;
 
 
-                                        for (float i=currAngle;i>=0;i-=10){
+                                        for (float i = currAngle; i >= 0; i -= 10) {
                                             if (anglelist.contains(i)) {
 
                                             } else {
                                                 anglelist.add(i);
 
                                             }
-                                            Log.d(TAG, "run: "+anglelist.toString());
+                                            Log.d(TAG, "run: " + anglelist.toString());
                                         }
-
 
 
 //                                        rotateLWheel(Float.parseFloat(temp.toString()));
@@ -456,14 +457,14 @@ public class HomeFragment extends Fragment {
                                         rotateAnimator2.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
                                         rotateAnimator2.start();
                                         rotateSteeringWheel(0); // Rotate to 0 degrees
-                                        touchAngle=0f;
+                                        touchAngle = 0f;
                                     }
                                 }, ROTATION_DELAY);
                             }
 
-                            SteeringVariables.home_thread_flag=false;
+                            SteeringVariables.home_thread_flag = false;
 
-                            for(int i=0; i<anglelist.size(); i++) {
+                            for (int i = 0; i < anglelist.size(); i++) {
 //                                    Log.d("status","home while()");
                                 byte[] tempb = formatAndConvertData((Float) anglelist.get(i));
                                 SteeringVariables.data5 = tempb;
@@ -496,7 +497,7 @@ public class HomeFragment extends Fragment {
                                     offsetrx += SteeringVariables.data5.length;
 
                                     System.arraycopy(hexData3, 0, concatenatedArrayRX, offsetrx, hexData3.length);
-                                    if(SteeringVariables.home_thread_flag==true){
+                                    if (SteeringVariables.home_thread_flag == true) {
                                         SteeringVariables.sendReceive.write(concatenatedArrayRX);
                                     }
 //                                        byte[] testval = {0x40,0x07,0x1E,0x08,0x1,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x0D,0x0A};
@@ -505,10 +506,10 @@ public class HomeFragment extends Fragment {
                                     e.printStackTrace();
                                 }
                             }
-                            if ("on".equals(SteeringVariables.steeringauto) && !isRotationInProgress){
+                            if ("on".equals(SteeringVariables.steeringauto) && !isRotationInProgress) {
                                 SteeringVariables.data5 = new byte[]{0x00, 0x00};
                             }
-                            SteeringVariables.home_thread_flag=true;
+                            SteeringVariables.home_thread_flag = true;
                             // Clear the angle set when touch is released
                             angleSet.clear();
                             break;
@@ -521,7 +522,7 @@ public class HomeFragment extends Fragment {
         bltbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(SteeringVariables.bluetooth){
+                if (SteeringVariables.bluetooth) {
 //                    bluetoothAdapter.
 //                    ClientClass clientClass = new ClientClass(SteeringVariables.device);
                     try {
@@ -531,7 +532,7 @@ public class HomeFragment extends Fragment {
                         throw new RuntimeException(e);
                     }
 
-                }else{
+                } else {
                     blueToothListPopup(getContext());
 
                 }
@@ -541,7 +542,7 @@ public class HomeFragment extends Fragment {
 
     }
 
-    public void rotationAngleProcess(){
+    public void rotationAngleProcess() {
 
         float rotationAngleDiff = touchAngle - initialTouchAngle;
         // Check if the rotation step is greater than the threshold
@@ -590,7 +591,7 @@ public class HomeFragment extends Fragment {
             long vibrationDuration = Math.max(1, (long) (VIBRATION_DURATION * intensity));
 
             // Create a vibration pattern with the calculated duration
-            long[] pattern = { 0, vibrationDuration };
+            long[] pattern = {0, vibrationDuration};
             // Vibrate with the pattern and default amplitude
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 vibrator.vibrate(VibrationEffect.createWaveform(pattern, -1));
@@ -603,7 +604,7 @@ public class HomeFragment extends Fragment {
         ObjectAnimator rotateAnimator = ObjectAnimator.ofFloat(steeringwheel, "rotation", steeringwheel.getRotation(), targetAngle);
         rotateAnimator.setDuration(ROTATION_DELAY); // Set the duration for the rotation animation (in milliseconds)
         rotateAnimator.start();
-        touchAngle=0f;
+        touchAngle = 0f;
     }
 
     private float calculateVibrationIntensity(float angle) {
@@ -630,7 +631,7 @@ public class HomeFragment extends Fragment {
     @Override
     public void onPause() {
         super.onPause();
-        SteeringVariables.data8=0x00;
+        SteeringVariables.data8 = 0x00;
         if (mediaPlayer != null && mediaPlayer.isPlaying()) {
             mediaPlayer.pause();
         }
@@ -651,8 +652,7 @@ public class HomeFragment extends Fragment {
         if (angleValue < 0) {
             angleValue = Math.abs(angleValue);
             SteeringVariables.data3 = 0x01;
-        }
-        else {
+        } else {
             SteeringVariables.data3 = 0x00;
         }
         Log.d("value11", "angle2 : " + angleValue);
@@ -668,8 +668,7 @@ public class HomeFragment extends Fragment {
             SteeringVariables.data5 = byteArray;
             Log.d("value11", "data1 : " + byteArray[0] + " data2: " + byteArray[1]);
             return byteArray;
-        }
-        else {
+        } else {
             // If angle is more than 255, store it in a double byte array
             byte[] doubleByteArray = new byte[2];
             doubleByteArray[0] = (byte) Integer.parseInt(hexAngle.substring(0, 2), 16);
@@ -681,21 +680,20 @@ public class HomeFragment extends Fragment {
 
     }
 
-    public static void vehicleChange(){
-        if (SteeringVariables.vehicle.equals("truck")){
+    public static void vehicleChange() {
+        if (SteeringVariables.vehicle.equals("truck")) {
             wheelL = l1wheel;
             wheelR = r1wheel;
             truckbody.setVisibility(View.VISIBLE);
             tractorbody.setVisibility(View.GONE);
             carbody.setVisibility(View.GONE);
-        }
-        else if (SteeringVariables.vehicle.equals("tractor")){
+        } else if (SteeringVariables.vehicle.equals("tractor")) {
             wheelL = l2wheel;
             wheelR = r2wheel;
             truckbody.setVisibility(View.GONE);
             tractorbody.setVisibility(View.VISIBLE);
             carbody.setVisibility(View.GONE);
-        }else {
+        } else {
             wheelL = lwheel;
             wheelR = rwheel;
             truckbody.setVisibility(View.GONE);
@@ -784,11 +782,10 @@ public class HomeFragment extends Fragment {
         btArray = new BluetoothDevice[bt.size()];
         int index = 0;
 
-        if(SteeringVariables.bluetoothAdapter != null && SteeringVariables.bluetoothAdapter.isEnabled()
-                && SteeringVariables.bluetoothAdapter.getProfileConnectionState(BluetoothHeadset.HEADSET) == BluetoothAdapter.STATE_CONNECTED){
-            Toast.makeText(getContext(),"Already Connected",Toast.LENGTH_SHORT);
-        }
-        else{
+        if (SteeringVariables.bluetoothAdapter != null && SteeringVariables.bluetoothAdapter.isEnabled()
+                && SteeringVariables.bluetoothAdapter.getProfileConnectionState(BluetoothHeadset.HEADSET) == BluetoothAdapter.STATE_CONNECTED) {
+            Toast.makeText(getContext(), "Already Connected", Toast.LENGTH_SHORT);
+        } else {
             if (bt.size() > 0) {
                 for (BluetoothDevice device : bt) {
                     btArray[index] = device;
@@ -819,12 +816,11 @@ public class HomeFragment extends Fragment {
         }
 
 
-
     }
 
     private void rotateLWheel(float rotationAngle) {
         int divisor = calculateDivisor(MAX_ROTATION_ANGLE); // Your DIVISOR value
-        float maxWheelRotation = MAX_ROTATION_ANGLE/divisor; // Your maxLeftWheelRotation value
+        float maxWheelRotation = MAX_ROTATION_ANGLE / divisor; // Your maxLeftWheelRotation value
 
         // Calculate the rotation angle for the left wheel based on the input rotation angle
         float leftWheelRotation = Math.max(-maxWheelRotation, Math.min(maxWheelRotation, rotationAngle / divisor));
@@ -883,7 +879,13 @@ public class HomeFragment extends Fragment {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if(requestCode==3){
+        if (requestCode == 3) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted, perform Bluetooth operations here
+                Toast.makeText(getContext(), "permission granted", Toast.LENGTH_SHORT).show();
+            } else {
+                // Permission denied, handle accordingly (e.g., show a message to the user)
+            }
 //            Toast.makeText(getContext(), "Bluetooth scan added", Toast.LENGTH_SHORT).show();
         }
 
@@ -933,8 +935,7 @@ public class HomeFragment extends Fragment {
                 Log.e("11111111111111111111111111", "socket conf");
                 inputStream = socket.getInputStream();
                 outputStream = socket.getOutputStream();
-            }
-            catch (IOException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
@@ -949,7 +950,10 @@ public class HomeFragment extends Fragment {
         public void run() {
             try {
                 if (inputStream != null && outputStream != null) {
-                    SteeringVariables.bluetoothAdapter.cancelDiscovery();
+                    if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+
+                    }
+//                    SteeringVariables.bluetoothAdapter.cancelDiscovery();
                     socket.connect();
                     SteeringVariables.bluetooth = true;
                     Log.e("11111111111111111111111111", "trying 1...");
