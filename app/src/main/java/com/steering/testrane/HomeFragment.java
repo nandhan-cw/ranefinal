@@ -335,13 +335,6 @@ public class HomeFragment extends Fragment {
                 public boolean onTouch(View v, MotionEvent event) {
                     float x = event.getX();
                     float y = event.getY();
-
-//                    if(SteeringVariables.release==true) {
-//                        Log.d("angle","true");
-//                        SteeringVariables.release=false;
-//                        touchAngle = 0f;
-//                        initialTouchAngle = touchAngle;
-//                    }
                     touchAngle = calculateAngle(x, y);
 //                    SteeringVariables.release = false;
 
@@ -411,13 +404,14 @@ public class HomeFragment extends Fragment {
 
 
                         case MotionEvent.ACTION_UP:
-                            touchAngle = 0f;
-                            initialTouchAngle = 0f;
-                            currentRotationAngle = 0f;
+
                             SteeringVariables.release = true;
                             stopVibration();
                             angleSet.clear();
                             if ("on".equals(SteeringVariables.steeringauto) && !isRotationInProgress) {
+                                touchAngle = 0f;
+                                initialTouchAngle = 0f;
+                                currentRotationAngle = 0f;
                                 // Enable auto rotation and start rotation after ROTATION_DELAY milliseconds
                                 rotationHandler.postDelayed(new Runnable() {
                                     @Override

@@ -139,7 +139,6 @@
             android:layout_height="50dp"
             android:hint="180"
             android:textSize="20dp"
-
             android:text="71E"
             android:background="@drawable/btn_outline"
             android:layout_marginLeft="20dp"
