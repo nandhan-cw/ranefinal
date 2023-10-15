@@ -50,7 +50,7 @@
             android:layout_height="50dp"
             android:hint="180"
             android:textSize="20dp"
-            android:inputType="text"
+            android:inputType="number"
             android:background="@drawable/btn_outline"
             android:layout_marginLeft="20dp"
             android:textColorHint="@color/grey"
@@ -65,7 +65,7 @@
         android:layout_below="@id/angledetails"
         android:orientation="horizontal"
         android:id="@+id/steeringsettings"
-        android:layout_marginTop="70dp">
+        android:layout_marginTop="30dp">
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -86,12 +86,106 @@
             android:padding="16dp" />
 
     </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/steeringsettings"
+        android:orientation="horizontal"
+        android:id="@+id/txtails"
+        android:layout_marginTop="30dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="TX                   :"
+            android:textColor="@color/grey"
+            android:textSize="18dp"
+            android:padding="10dp"></TextView>
+        <EditText
+            android:id="@+id/tx"
+            android:layout_width="100dp"
+            android:layout_height="50dp"
+            android:hint="180"
+            android:text="70E"
+            android:textSize="20dp"
+
+            android:background="@drawable/btn_outline"
+            android:layout_marginLeft="20dp"
+            android:textColorHint="@color/grey"
+            android:maxLength="3"
+            android:textColor="@color/white"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/txtails"
+        android:orientation="horizontal"
+        android:id="@+id/rxtails"
+        android:layout_marginTop="30dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="RX                   :"
+            android:textColor="@color/grey"
+            android:textSize="18dp"
+            android:padding="10dp"></TextView>
+        <EditText
+            android:id="@+id/rx"
+            android:layout_width="100dp"
+            android:layout_height="50dp"
+            android:hint="180"
+            android:textSize="20dp"
+
+            android:text="71E"
+            android:background="@drawable/btn_outline"
+            android:layout_marginLeft="20dp"
+            android:maxLength="3"
+            android:textColorHint="@color/grey"
+            android:textColor="@color/white"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/rxtails"
+        android:orientation="horizontal"
+        android:id="@+id/vehicledetails"
+        android:layout_marginTop="30dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Vehicle            :"
+            android:textColor="@color/grey"
+            android:textSize="18dp"
+            android:padding="10dp"></TextView>
+        <Spinner
+            android:id="@+id/spinner"
+            android:layout_width="100dp"
+            android:textSize="18dp"
+            android:layout_height="50dp"
+            android:background="@drawable/btn_outline"
+            android:paddingLeft="10dp"
+            android:layout_marginLeft="20dp"
+            android:textColorHint="@color/white"
+            android:textColor="@color/white"
+            android:paddingRight="10dp"
+            android:popupTheme="@style/SpinnerDropdownTheme"
+            android:entries="@array/default_options"
+            />
+    </LinearLayout>
     <androidx.appcompat.widget.AppCompatButton
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Save"
         android:background="@drawable/button"
-        android:layout_below="@id/steeringsettings"
+
+        android:layout_below="@id/vehicledetails"
         android:layout_marginTop="40dp"
         android:textColor="@color/white"
         android:id="@+id/savebtn"
