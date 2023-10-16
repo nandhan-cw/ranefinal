@@ -159,7 +159,7 @@ public class LoadingPage extends AppCompatActivity {
                     @Override
                     public void onClick(View view) {
                         if (!isFinishing()) {
-                            if (username.getText().toString().equals("rane_user") && password.getText().toString().equals("12345")) {
+                            if (username.getText().toString().trim().equals("rane_user") && password.getText().toString().trim().equals("12345")) {
                                 progressDialog.setMessage("Please wait Logging in");
                                 progressDialog.setCanceledOnTouchOutside(false);
                                 progressDialog.show();

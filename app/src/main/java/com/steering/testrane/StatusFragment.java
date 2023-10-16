@@ -200,7 +200,6 @@ public class StatusFragment extends Fragment {
                     byte fivedata = readBuff[8];
                     int decimalValue = (fourdata & 0xFF) << 8 | (fivedata & 0xFF);
 
-                    Log.d("valueget","one: "+onedata+" seven: "+sevendata+" three: "+threedata+" four: "+fourdata+"  five: "+fivedata);
 
                     if(onedata==0x02){
                             if(HomeFragment.byteToHex(threedata).toLowerCase().equals("00")){
@@ -215,8 +214,6 @@ public class StatusFragment extends Fragment {
                             }
                     }
                     else if(onedata==0x03){
-
-                        Log.d("valuegte","four: "+HomeFragment.byteToHex(fourdata)+" five: "+HomeFragment.byteToHex(fivedata) );
 
                         if(HomeFragment.byteToHex(fourdata).toLowerCase().equals("3e")){
                             // change light to green in motor and ecu

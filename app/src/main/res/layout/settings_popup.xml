@@ -46,6 +46,7 @@
             android:padding="10dp"></TextView>
         <EditText
             android:id="@+id/max_angle"
+            android:maxLength="4"
             android:layout_width="100dp"
             android:layout_height="50dp"
             android:hint="180"

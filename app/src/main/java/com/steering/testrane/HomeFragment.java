@@ -118,7 +118,7 @@ public class HomeFragment extends Fragment {
     static ImageView r2wheel;
     private boolean isAutoRotationEnabled = false;
     float touchAngle;
-    ArrayList anglelist;
+    ArrayList<Float> anglelist;
     Set<Float> uniqueAnglesSet;
     static RelativeLayout carbody;
     static RelativeLayout truckbody;
@@ -172,8 +172,10 @@ public class HomeFragment extends Fragment {
 //            SteeringVariables.frameIdRX = 0x71E;
 //        }
 
-        SteeringVariables.home_thread_flag = true;
-        SteeringVariables.status_thread_flag = false;
+        if(SteeringVariables.bluetooth) {
+            SteeringVariables.home_thread_flag = true;
+            SteeringVariables.status_thread_flag = false;
+        }
 
         Log.d("check", "flag " + SteeringVariables.home_thread_flag);
 
@@ -406,7 +408,7 @@ public class HomeFragment extends Fragment {
 // Inside MotionEvent.ACTION_MOVE case:
 
                         case MotionEvent.ACTION_MOVE:
-                            Log.d("checkinsert","1");
+                            Log.d("checkinsert", "1");
                             rotationAngleProcess();
 
                             float vibrationIntensity = calculateVibrationIntensity(currentRotationAngle);
@@ -420,40 +422,100 @@ public class HomeFragment extends Fragment {
                             stopVibration();
                             angleSet.clear();
                             if ("on".equals(SteeringVariables.steeringauto) && !isRotationInProgress) {
-                                SteeringVariables.data5 = new byte[]{0x00, 0x00};
+//                                SteeringVariables.data5 = new byte[]{0x00, 0x00};
+                                // Enable auto rotation and start rotation after ROTATION_DELAY milliseconds
+                                SteeringVariables.home_thread_flag = false;
+                                Log.d("checkvalue1", "ca: " + currentRotationAngle + " ta: " + touchAngle + " ita: " + initialTouchAngle);
+                                Float tempangle = touchAngle;
+                                Float tempia = initialTouchAngle;
+                                Float temoca = currentRotationAngle;
+                                final Float[] tempca = {currentRotationAngle};
+                                float rotationAngleDiff = tempangle - tempia;
+                                // Check if the rotation step is greater than the threshold
+                                if (Math.abs(rotationAngleDiff) >= TOUCH_SENSITIVITY_THRESHOLD) {
+                                    temoca += (rotationAngleDiff > 0) ? ROTATION_STEP : -ROTATION_STEP;
+                                    temoca = Math.min(MAX_ROTATION_ANGLE, Math.max(-MAX_ROTATION_ANGLE, temoca));
+                                }
+                                Log.d("checkvalue:", "value of new angle: " + temoca + " " + tempangle + " " + tempia);
+                                Float finalTemoca = temoca;
+                                if (SteeringVariables.sendReceive != null) {
+                                    new Thread(new Runnable() {
+                                        @Override
+                                        public void run() {
+
+                                            // Calculate the new rotation angle
+                                            SteeringVariables.home_thread_flag = false;
+                                            Log.d("checkvalue1", "ca: " + tempangle);
+                                            for (float i = finalTemoca; i >= 0; i -= 10) {
+                                                /// updating data5
+                                                byte[] tempbyte = formatAndConvertData(i);
+                                                try {
+                                                    byte[] frameId = convertShortToBytes(SteeringVariables.frameId1);
+                                                    byte[] hexData1 = {SteeringVariables.startId};
+                                                    byte[] hexData2 = {SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3};
+                                                    byte[] angleData = SteeringVariables.data5;
+                                                    //                                            Log.d("data","3: "+SteeringVariables.data5[0]+" 4: "+SteeringVariables.data5[1]);
+
+                                                    byte[] hexData3 = {SteeringVariables.data6, SteeringVariables.data7, SteeringVariables.data8, SteeringVariables.endId1, SteeringVariables.endId2};
+
+                                                    int totalLength = frameId.length + hexData1.length + hexData2.length + angleData.length + hexData3.length;
+                                                    byte[] concatenatedArray = new byte[totalLength];
+                                                    int offset = 0;
+
+                                                    System.arraycopy(hexData1, 0, concatenatedArray, offset, hexData1.length);
+                                                    offset += hexData1.length;
+
+                                                    System.arraycopy(frameId, 0, concatenatedArray, offset, frameId.length);
+                                                    offset += frameId.length;
+
+                                                    System.arraycopy(hexData2, 0, concatenatedArray, offset, hexData2.length);
+                                                    offset += hexData2.length;
+
+//                                                    Log.d("value", "value sent 1 " + SteeringVariables.data5[0] + "value sent 2 : " + SteeringVariables.data5[1]);
+
+                                                    System.arraycopy(SteeringVariables.data5, 0, concatenatedArray, offset, SteeringVariables.data5.length);
+                                                    offset += SteeringVariables.data5.length;
+
+                                                    System.arraycopy(hexData3, 0, concatenatedArray, offset, hexData3.length);
+                                                    SteeringVariables.sendReceive.write(concatenatedArray);
+
+                                                    Thread.sleep(200); // Delay for 1 second (1000 milliseconds)
+                                                } catch (InterruptedException e) {
+                                                    e.printStackTrace();
+                                                }
+
+                                                Log.d(TAG, "run: " + anglelist.toString());
+                                            }
+                                            SteeringVariables.home_thread_flag = true;
+                                        }
+
+                                    }).start();
+                                }
 
                                 touchAngle = 0f;
                                 initialTouchAngle = 0f;
                                 currentRotationAngle = 0f;
-                                // Enable auto rotation and start rotation after ROTATION_DELAY milliseconds
                                 rotationHandler.postDelayed(new Runnable() {
                                     @Override
                                     public void run() {
-                                        float rotationAngleDiff = touchAngle - initialTouchAngle;
-                                        // Check if the rotation step is greater than the threshold
-                                        if (Math.abs(rotationAngleDiff) >= TOUCH_SENSITIVITY_THRESHOLD) {
-                                            // Calculate the new rotation angle
-                                            currentRotationAngle += (rotationAngleDiff > 0) ? ROTATION_STEP : -ROTATION_STEP;
-                                            // Ensure the rotation angle is within 360 degrees
-                                            currentRotationAngle = Math.min(MAX_ROTATION_ANGLE, Math.max(-MAX_ROTATION_ANGLE, currentRotationAngle));
-
-
-                                        }
-                                        Float currAngle = currentRotationAngle;
-
-
-                                        for (float i = currAngle; i >= 0; i -= 10) {
-                                            if (anglelist.contains(i)) {
-
-                                            } else {
-                                                anglelist.add(i);
-
-                                            }
-                                            Log.d(TAG, "run: " + anglelist.toString());
-                                        }
-
-
-//                                        rotateLWheel(Float.parseFloat(temp.toString()));
+//                                        float rotationAngleDiff = touchAngle - initialTouchAngle;
+//                                        // Check if the rotation step is greater than the threshold
+//                                        if (Math.abs(rotationAngleDiff) >= TOUCH_SENSITIVITY_THRESHOLD) {
+//                                            // Calculate the new rotation angle
+//                                            currentRotationAngle += (rotationAngleDiff > 0) ? ROTATION_STEP : -ROTATION_STEP;
+//                                            // Ensure the rotation angle is within 360 degrees
+//                                            currentRotationAngle = Math.min(MAX_ROTATION_ANGLE, Math.max(-MAX_ROTATION_ANGLE, currentRotationAngle));
+//
+//                                        }
+//                                        Float currAngle = currentRotationAngle;
+//
+//                                        Log.d("valuecheck1",anglelist.size()+" size");
+//
+//                                        for (Float value : anglelist) {
+//                                            Log.d("valuecheck1",""+value);
+//
+//                                        }
+////                                        rotateLWheel(Float.parseFloat(temp.toString()));
                                         ObjectAnimator rotateAnimator1 = ObjectAnimator.ofFloat(wheelL, "rotation", wheelL.getRotation(), Float.parseFloat("0"));
                                         rotateAnimator1.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
                                         rotateAnimator1.start();
@@ -461,61 +523,12 @@ public class HomeFragment extends Fragment {
                                         rotateAnimator2.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
                                         rotateAnimator2.start();
                                         rotateSteeringWheel(0); // Rotate to 0 degrees
-                                        touchAngle = 0f;
+//                                        touchAngle = 0f;
                                     }
                                 }, ROTATION_DELAY);
+                                // Iterate through the list and send each value via Bluetooth
 
                             }
-
-                            SteeringVariables.home_thread_flag = false;
-
-//                            for (int i = 0; i < anglelist.size(); i++) {
-////                                    Log.d("status","home while()");
-//                                byte[] tempb = formatAndConvertData((Float) anglelist.get(i));
-//                                SteeringVariables.data5 = tempb;
-//                                try {
-//                                    byte[] hexData1 = {SteeringVariables.startId};
-//                                    byte[] frameIdRx = convertShortToBytes(SteeringVariables.frameIdRX);
-//                                    byte[] hexData2 = {SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3};
-//                                    byte[] angleData = SteeringVariables.data5;
-////                                        Log.d("data","2: "+SteeringVariables.data5[0]+" 4: "+SteeringVariables.data5[1]);
-//                                    byte[] hexData3 = {SteeringVariables.data6, SteeringVariables.data7, SteeringVariables.data8, SteeringVariables.endId1, SteeringVariables.endId2};
-//
-//                                    int totalLength = frameIdRx.length + hexData1.length + hexData2.length + angleData.length + hexData3.length;
-//
-//                                    ///////// rx byte[]
-//
-//                                    byte[] concatenatedArrayRX = new byte[totalLength];
-//
-//                                    int offsetrx = 0;
-//
-//                                    System.arraycopy(hexData1, 0, concatenatedArrayRX, offsetrx, hexData1.length);
-//                                    offsetrx += hexData1.length;
-//
-//                                    System.arraycopy(frameIdRx, 0, concatenatedArrayRX, offsetrx, frameIdRx.length);
-//                                    offsetrx += frameIdRx.length;
-//
-//                                    System.arraycopy(hexData2, 0, concatenatedArrayRX, offsetrx, hexData2.length);
-//                                    offsetrx += hexData2.length;
-//
-//                                    System.arraycopy(SteeringVariables.data5, 0, concatenatedArrayRX, offsetrx, SteeringVariables.data5.length);
-//                                    offsetrx += SteeringVariables.data5.length;
-//
-//                                    System.arraycopy(hexData3, 0, concatenatedArrayRX, offsetrx, hexData3.length);
-//                                    if (SteeringVariables.home_thread_flag == true) {
-//                                        SteeringVariables.sendReceive.write(concatenatedArrayRX);
-//                                    }
-////                                        byte[] testval = {0x40,0x07,0x1E,0x08,0x1,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x0D,0x0A};
-////                                    Thread.sleep(500); // Delay for 1 second (1000 milliseconds)
-//                                } catch (Exception e) {
-//                                    e.printStackTrace();
-//                                }
-//                            }
-//                            if ("on".equals(SteeringVariables.steeringauto) && !isRotationInProgress) {
-//                            }
-                            SteeringVariables.home_thread_flag = true;
-                            // Clear the angle set when touch is released
-                            angleSet.clear();
                             break;
                     }
                     return true;
@@ -526,15 +539,17 @@ public class HomeFragment extends Fragment {
         bltbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                Log.d("Socket close",""+SteeringVariables.bluetooth);
                 if (SteeringVariables.bluetooth) {
 //                    bluetoothAdapter.
 //                    ClientClass clientClass = new ClientClass(SteeringVariables.device);
                     try {
-                        ClientClass clientClass = new ClientClass(SteeringVariables.device);
-                        clientClass.cancel();
-                    } catch (IOException e) {
+//                        ClientClass clientClass = new ClientClass(SteeringVariables.device);
+//                        clientClass.cancel();
+                    } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
+                    Toast.makeText(getContext(), "Already connected", Toast.LENGTH_SHORT).show();
 
                 } else {
                     blueToothListPopup(getContext());
@@ -547,7 +562,7 @@ public class HomeFragment extends Fragment {
     }
 
     public void rotationAngleProcess() {
-        Log.d("checkinsert","2");
+        Log.d("checkinsert", "2");
 
         float rotationAngleDiff = touchAngle - initialTouchAngle;
         // Check if the rotation step is greater than the threshold
@@ -936,6 +951,15 @@ public class HomeFragment extends Fragment {
 //                if (ActivityCompat.checkSelfPermission(getContext(), android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
 //                }
                 ParcelUuid[] pu = device.getUuids();
+
+                if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.BLUETOOTH_SCAN}, 2);
+                }
+                try{
+                    SteeringVariables.bluetoothAdapter.cancelDiscovery();
+                }catch (Exception e){
+                    Log.d("Bluetooth","cancelDiscovery() not working");
+                }
                 socket = device.createRfcommSocketToServiceRecord(MY_UUID);
                 Log.e("11111111111111111111111111", "socket conf");
                 inputStream = socket.getInputStream();
@@ -946,10 +970,18 @@ public class HomeFragment extends Fragment {
         }
 
         public void cancel() throws IOException {
-            socket.close();
-            Message message = Message.obtain();
-            message.what = STATE_CANCELLED;
-            handler.sendMessage(message);
+            try{
+                socket.close();
+                try {
+                    SteeringVariables.bluetoothAdapter.startDiscovery();
+                }catch (Exception e){}
+                Message message = Message.obtain();
+                message.what = STATE_CANCELLED;
+                handler.sendMessage(message);
+            }catch (Exception e){
+                Log.d("Socket close","Socket not closed");
+            }
+
         }
 
         public void run() {
@@ -1025,20 +1057,16 @@ public class HomeFragment extends Fragment {
                     Message message = Message.obtain();
                     message.what = STATE_CONNECTING;
                     handler.sendMessage(message);
-                    Log.d("11111111111111111111111111","uuid before");
                     socket = serverSocket.accept();
-                    Log.d("11111111111111111111111111","uuid after");
 
                 } catch (IOException e) {
                     e.printStackTrace();
                     Message message = Message.obtain();
                     message.what = STATE_CONNECTION_FAILED;
-                    Log.d("11111111111111111111111111", e.getMessage());
                     handler.sendMessage(message);
                 }
 
                 if (socket != null) {
-                    Log.d("11111111111111111111111111","socket not null");
                     Message message = Message.obtain();
                     message.what = STATE_CONNECTED;
                     handler.sendMessage(message);
@@ -1101,9 +1129,14 @@ public class HomeFragment extends Fragment {
         public boolean handleMessage(Message msg) {
             switch (msg.what) {
                 case STATE_CANCELLED:
+                    Toast.makeText(getContext(), "Bluetooth disconnected", Toast.LENGTH_SHORT).show();
                     SteeringVariables.bluetooth=false;
+                    Log.d("Socket close","STATE_CANCELLED");
                     SteeringVariables.sendReceive=null;
-
+                    SteeringVariables.home_thread_flag=false;
+                    SteeringVariables.home_thread_flag=true;
+                    SteeringVariables.sendReceive=null;
+                    SteeringVariables.bluetoothAdapter = null;
                     bltbtn.setImageResource(R.drawable.baseline_bluetooth_disabled_24);
                     connectStatus.setText("Not Connected");
                     break;
@@ -1115,6 +1148,15 @@ public class HomeFragment extends Fragment {
                     break;
                 case STATE_CONNECTED:
                     connectStatus.setText("Connected");
+                    SteeringVariables.bluetooth=true;
+                    ObjectAnimator rotateAnimator = ObjectAnimator.ofFloat(wheelL, "rotation", wheelL.getRotation(), Float.parseFloat("0"));
+                    rotateAnimator.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
+                    rotateAnimator.start();
+                    ObjectAnimator rotateAnimator2 = ObjectAnimator.ofFloat(wheelR, "rotation", wheelR.getRotation(), Float.parseFloat("0"));
+                    rotateAnimator2.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
+                    rotateAnimator2.start();
+                    rotateSteeringWheel(0);
+
                     while(SteeringVariables.sendReceive==null){
                         Log.d("11111111111111111111111111","sendrec1: "+SteeringVariables.sendReceive);
                         if (SteeringVariables.sendReceive != null) {
@@ -1128,7 +1170,6 @@ public class HomeFragment extends Fragment {
                         }
                     }
                     if (SteeringVariables.sendReceive != null) {
-
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
@@ -1164,7 +1205,7 @@ public class HomeFragment extends Fragment {
                                         offsetrx += SteeringVariables.data5.length;
 
                                         System.arraycopy(hexData3, 0, concatenatedArrayRX, offsetrx, hexData3.length);
-                                        if(SteeringVariables.home_thread_flag==true){
+                                        if(SteeringVariables.home_thread_flag==true && SteeringVariables.bluetooth){
                                             SteeringVariables.sendReceive.write(concatenatedArrayRX);
                                         }
 //                                        byte[] testval = {0x40,0x07,0x1E,0x08,0x1,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x0D,0x0A};
@@ -1202,13 +1243,13 @@ public class HomeFragment extends Fragment {
                                             System.arraycopy(hexData2, 0, concatenatedArray, offset, hexData2.length);
                                             offset += hexData2.length;
 
-                                            Log.d("value", "value sent 1 " + SteeringVariables.data5[0] + "value sent 2 : " + SteeringVariables.data5[1]);
+//                                            Log.d("value", "value sent 1 " + SteeringVariables.data5[0] + "value sent 2 : " + SteeringVariables.data5[1]);
 
                                             System.arraycopy(SteeringVariables.data5, 0, concatenatedArray, offset, SteeringVariables.data5.length);
                                             offset += SteeringVariables.data5.length;
 
                                             System.arraycopy(hexData3, 0, concatenatedArray, offset, hexData3.length);
-                                            if(SteeringVariables.home_thread_flag==true){
+                                            if(SteeringVariables.home_thread_flag==true && SteeringVariables.bluetooth){
                                                 SteeringVariables.sendReceive.write(concatenatedArray);
                                             }
 
@@ -1238,7 +1279,7 @@ public class HomeFragment extends Fragment {
                     byte[] readBuff = (byte[]) msg.obj;
                     String tempMsg = new String(readBuff, 0, msg.arg1);
                     String hexString = bytesToHex(readBuff);
-                    Log.d("value","Received msg "+byteToHex(SteeringVariables.RxSignal));
+//                    Log.d("value","Received msg "+byteToHex(SteeringVariables.RxSignal));
                     if(byteToHex(SteeringVariables.RxSignal).toLowerCase().equals("3e")){
                         SteeringVariables.bluetoothstatus = true;
                         write.setText("POS");
@@ -1255,7 +1296,7 @@ public class HomeFragment extends Fragment {
 
     public static String bytesToHex(byte[] bytes) {
         StringBuilder sb = new StringBuilder(bytes.length * 2);
-        Log.d("value","length: "+bytes.length);
+//        Log.d("value","length: "+bytes.length);
         SteeringVariables.RxSignal = bytes[5];
         for(byte b: bytes) {
             if (sb.length() <= 26) {

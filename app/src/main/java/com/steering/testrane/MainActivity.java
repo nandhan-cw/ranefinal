@@ -300,7 +300,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         editor.apply();
     }
 
-
     public void settingspopup(Context context) {
         final Dialog dialog = new Dialog(context);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -361,8 +360,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                 if(maxAngleEditText.getText().toString().isEmpty()){
                     SteeringVariables.max_angle = "180";
                 }else{
-                    SteeringVariables.max_angle = maxAngleEditText.getText().toString();
-
+                    SteeringVariables.max_angle = maxAngleEditText.getText().toString().trim();
                 }
                 SteeringVariables.steeringauto = toggleButton.isChecked() ? "on" : "off";
                 SteeringVariables.vehicle = spinner.getSelectedItem().toString();
@@ -401,7 +399,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         editor.putString("vehicle",SteeringVariables.vehicle.toString());
 
         String hexString = Integer.toHexString(SteeringVariables.frameId1).toUpperCase();
-        editor.putString("tx", tx.getText().toString());
+        editor.putString("tx", tx.getText().toString().trim());
 
         String hexString1 = Integer.toHexString(SteeringVariables.frameIdRX).toUpperCase();
         editor.putString("rx", rx.getText().toString());
@@ -412,36 +410,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         editor.apply();
     }
-    public void vehicleChoose(){
-        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
-                // Get the selected item from the adapter
-                String selectedItem = (String) parentView.getItemAtPosition(position);
-                // Do something with the selected item
-                if (selectedItem.equals("truck")) {
-                    SteeringVariables.vehicle = "truck";
-                    HomeFragment.vehicleChange();
-                    Log.d("vehicle", "vehicle 2st "+SteeringVariables.vehicle.toString());
 
-                }else if (selectedItem.equals("tractor")){
-                    SteeringVariables.vehicle="tractor";
-                    HomeFragment.vehicleChange();
-                    Log.d("vehicle", "vehicle 3st "+SteeringVariables.vehicle.toString());
-                }else {
-                    SteeringVariables.vehicle="car";
-                    HomeFragment.vehicleChange();
-                }
-
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parentView) {
-                // Handle situation when nothing is selected
-                SteeringVariables.vehicle = "car";
-            }
-        });
-    }
     public void txrxChoose(){
         try {
             String hexString = tx.getText().toString().toUpperCase();
@@ -463,58 +432,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
-//    public void loadData(){
-//        SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFS,MODE_PRIVATE);
-//        SteeringVariables.max_angle = sharedPreferences.getString("max_angle", "180"); // Load max angle
-//        SteeringVariables.steeringauto = sharedPreferences.getString("steering_auto","off"); // Load steering auto state
-//        SteeringVariables.steeringStatus = sharedPreferences.getString("steeringstatus","not_locked");
-//        SteeringVariables.vehicle = sharedPreferences.getString("vehicle","car");
-//        if(maxAngleEditText!=null){
-//            maxAngleEditText.setText(SteeringVariables.max_angle);
-//        }
-//        if(toggleButton!=null){
-//            toggleButton.setChecked(SteeringVariables.steeringauto.equals("on"));  // Check toggle button based on SteeringVariables.steeringauto value
-//        }
-//        if(tx!=null){
-//            short number = SteeringVariables.frameId1;
-//            String hexString = Integer.toHexString(number & 0xffff);
-//            tx.setText(hexString.toUpperCase());
-//        }
-//        if(rx!=null){
-//            short number1 = SteeringVariables.frameIdRX;
-//            String hexString1 = Integer.toHexString(number1 & 0xffff);
-//            rx.setText(hexString1.toUpperCase());
-//        }
-//
-////        }
-//
-//          // Set text using SteeringVariables.max_angle
-//        LockSteeringFragment fragment = (LockSteeringFragment) getSupportFragmentManager().findFragmentById(R.id.lock);
-//
-//        Log.d("check",""+sharedPreferences.getString("tx","")+" rx "+sharedPreferences.getString("rx",""));
-//        if(sharedPreferences.contains("tx") && sharedPreferences.contains("rx")) {
-//            String hexString = sharedPreferences.getString("tx", "");
-////            short number = Short.parseShort(hexString, 16);
-//
-//            int decimalValue = Integer.parseInt(hexString, 16);
-//            short shortValue = (short) decimalValue;
-//            SteeringVariables.frameId1 = shortValue;
-//
-//            String hexString1 = sharedPreferences.getString("rx", "");
-////            short number2 = Short.parseShort(hexString1, 16);
-//            int decimalValue1 = Integer.parseInt(hexString1, 16);
-//            short shortValue1 = (short) decimalValue1;
-//            SteeringVariables.frameIdRX = shortValue1;
-//        }
-//
-//        if (fragment != null) {
-//            fragment.lockedstatus.setText(SteeringVariables.max_angle);
-//        }
-//        // Set tx EditText if txValue is not null
-////        String txValue = sharedPreferences.getString("tx", "0");
-////        if ( txValue!= null) {HomeFragment.sh
-//
-//    }
+
 
     public void loadData(){
         SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFS,MODE_PRIVATE);

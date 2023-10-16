@@ -72,7 +72,7 @@
                 android:id="@+id/astatus"
                 android:layout_width="80dp"
                 android:layout_height="35dp"
-                android:text="ok"
+                android:text="0"
                 android:textAlignment="center"
                 android:padding="5dp"
                 android:background="@drawable/btn_outline"
@@ -80,6 +80,7 @@
                 android:textColor="@color/green"
                 android:textStyle="bold"
                 />
+
         </LinearLayout>
         <LinearLayout
             android:id="@+id/msensorlayout"
