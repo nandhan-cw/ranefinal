@@ -15,6 +15,7 @@ public class SteeringVariables {
     public static String steeringStatus="not_locked";
     public static String max_angle="180";
     public static String steeringauto="off";
+    public  static String vibration = "0.4";
     public static String loginstatus="on";
     public static String getCurrentFragment() {
         return currentFragment;

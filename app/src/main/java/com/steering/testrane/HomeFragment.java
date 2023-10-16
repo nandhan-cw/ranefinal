@@ -172,10 +172,10 @@ public class HomeFragment extends Fragment {
 //            SteeringVariables.frameIdRX = 0x71E;
 //        }
 
-        if(SteeringVariables.bluetooth) {
+//        if(SteeringVariables.bluetooth) {
             SteeringVariables.home_thread_flag = true;
             SteeringVariables.status_thread_flag = false;
-        }
+//        }
 
         Log.d("check", "flag " + SteeringVariables.home_thread_flag);
 
@@ -412,7 +412,7 @@ public class HomeFragment extends Fragment {
                             rotationAngleProcess();
 
                             float vibrationIntensity = calculateVibrationIntensity(currentRotationAngle);
-                            startVibration(vibrationIntensity);
+                            startVibration(Float.parseFloat(SteeringVariables.vibration));
 
                             break;
 
