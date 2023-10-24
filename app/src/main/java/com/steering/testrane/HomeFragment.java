@@ -217,7 +217,10 @@ public class HomeFragment extends Fragment {
         Handler handler = new Handler();
         anglelist = new ArrayList();
 
-
+//        if(SteeringVariables.steeringauto.equals("on")){
+//            SteeringVariables.data5 = new byte[]{0x00,0x00};
+//        }
+        Log.d("value123",""+SteeringVariables.data5[0]+SteeringVariables.data5[1]);
         byte[] datainitial = SteeringVariables.data5; // 2-byte array representing a 16-bit integer
         float floatValue;
         // Convert little-endian 16-bit integer to float manually
@@ -236,6 +239,7 @@ public class HomeFragment extends Fragment {
 
         rotationAngleProcess();
         vehicleChange();
+
         rotateLWheel(floatValue);
 
         if (SteeringVariables.bluetooth) {
@@ -438,7 +442,6 @@ public class HomeFragment extends Fragment {
                                 }
                                 Log.d("checkvalue:", "value of new angle: " + temoca + " " + tempangle + " " + tempia);
                                 Float finalTemoca = temoca;
-                                if (SteeringVariables.sendReceive != null) {
                                     new Thread(new Runnable() {
                                         @Override
                                         public void run() {
@@ -446,51 +449,104 @@ public class HomeFragment extends Fragment {
                                             // Calculate the new rotation angle
                                             SteeringVariables.home_thread_flag = false;
                                             Log.d("checkvalue1", "ca: " + tempangle);
-                                            for (float i = finalTemoca; i >= 0; i -= 10) {
-                                                /// updating data5
-                                                byte[] tempbyte = formatAndConvertData(i);
-                                                try {
-                                                    byte[] frameId = convertShortToBytes(SteeringVariables.frameId1);
-                                                    byte[] hexData1 = {SteeringVariables.startId};
-                                                    byte[] hexData2 = {SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3};
-                                                    byte[] angleData = SteeringVariables.data5;
-                                                    //                                            Log.d("data","3: "+SteeringVariables.data5[0]+" 4: "+SteeringVariables.data5[1]);
+                                            if(finalTemoca<0){
+                                                for (float i = finalTemoca; i <= 0; i += 10) {
+                                                    /// updating data5
+                                                    byte[] tempbyte = formatAndConvertData(i);
+                                                    Log.d("value123","minus "+SteeringVariables.data5[0]+SteeringVariables.data5[1]);
+                                                    try {
+                                                        byte[] frameId = convertShortToBytes(SteeringVariables.frameId1);
+                                                        byte[] hexData1 = {SteeringVariables.startId};
+                                                        byte[] hexData2 = {SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3};
+                                                        byte[] angleData = SteeringVariables.data5;
+                                                        //                                            Log.d("data","3: "+SteeringVariables.data5[0]+" 4: "+SteeringVariables.data5[1]);
 
-                                                    byte[] hexData3 = {SteeringVariables.data6, SteeringVariables.data7, SteeringVariables.data8, SteeringVariables.endId1, SteeringVariables.endId2};
+                                                        byte[] hexData3 = {SteeringVariables.data6, SteeringVariables.data7, SteeringVariables.data8, SteeringVariables.endId1, SteeringVariables.endId2};
 
-                                                    int totalLength = frameId.length + hexData1.length + hexData2.length + angleData.length + hexData3.length;
-                                                    byte[] concatenatedArray = new byte[totalLength];
-                                                    int offset = 0;
+                                                        int totalLength = frameId.length + hexData1.length + hexData2.length + angleData.length + hexData3.length;
+                                                        byte[] concatenatedArray = new byte[totalLength];
+                                                        int offset = 0;
 
-                                                    System.arraycopy(hexData1, 0, concatenatedArray, offset, hexData1.length);
-                                                    offset += hexData1.length;
+                                                        System.arraycopy(hexData1, 0, concatenatedArray, offset, hexData1.length);
+                                                        offset += hexData1.length;
 
-                                                    System.arraycopy(frameId, 0, concatenatedArray, offset, frameId.length);
-                                                    offset += frameId.length;
+                                                        System.arraycopy(frameId, 0, concatenatedArray, offset, frameId.length);
+                                                        offset += frameId.length;
 
-                                                    System.arraycopy(hexData2, 0, concatenatedArray, offset, hexData2.length);
-                                                    offset += hexData2.length;
+                                                        System.arraycopy(hexData2, 0, concatenatedArray, offset, hexData2.length);
+                                                        offset += hexData2.length;
 
 //                                                    Log.d("value", "value sent 1 " + SteeringVariables.data5[0] + "value sent 2 : " + SteeringVariables.data5[1]);
 
-                                                    System.arraycopy(SteeringVariables.data5, 0, concatenatedArray, offset, SteeringVariables.data5.length);
-                                                    offset += SteeringVariables.data5.length;
+                                                        System.arraycopy(SteeringVariables.data5, 0, concatenatedArray, offset, SteeringVariables.data5.length);
+                                                        offset += SteeringVariables.data5.length;
 
-                                                    System.arraycopy(hexData3, 0, concatenatedArray, offset, hexData3.length);
-                                                    SteeringVariables.sendReceive.write(concatenatedArray);
+                                                        System.arraycopy(hexData3, 0, concatenatedArray, offset, hexData3.length);
+                                                        if (SteeringVariables.sendReceive != null) {
+                                                            SteeringVariables.sendReceive.write(concatenatedArray);
+                                                        }
 
-                                                    Thread.sleep(200); // Delay for 1 second (1000 milliseconds)
-                                                } catch (InterruptedException e) {
-                                                    e.printStackTrace();
+                                                        Thread.sleep(200); // Delay for 1 second (1000 milliseconds)
+                                                    } catch (InterruptedException e) {
+                                                        e.printStackTrace();
+                                                    }
+
+                                                    Log.d(TAG, "run: " + anglelist.toString());
                                                 }
-
-                                                Log.d(TAG, "run: " + anglelist.toString());
                                             }
+                                            else{
+                                                for (float i = finalTemoca; i >= 0; i -= 10) {
+                                                    /// updating data5
+                                                    byte[] tempbyte = formatAndConvertData(i);
+                                                    Log.d("value123","plus "+SteeringVariables.data5[0]+SteeringVariables.data5[1]);
+                                                    try {
+                                                        byte[] frameId = convertShortToBytes(SteeringVariables.frameId1);
+                                                        byte[] hexData1 = {SteeringVariables.startId};
+                                                        byte[] hexData2 = {SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3};
+                                                        byte[] angleData = SteeringVariables.data5;
+                                                        //                                            Log.d("data","3: "+SteeringVariables.data5[0]+" 4: "+SteeringVariables.data5[1]);
+
+                                                        byte[] hexData3 = {SteeringVariables.data6, SteeringVariables.data7, SteeringVariables.data8, SteeringVariables.endId1, SteeringVariables.endId2};
+
+                                                        int totalLength = frameId.length + hexData1.length + hexData2.length + angleData.length + hexData3.length;
+                                                        byte[] concatenatedArray = new byte[totalLength];
+                                                        int offset = 0;
+
+                                                        System.arraycopy(hexData1, 0, concatenatedArray, offset, hexData1.length);
+                                                        offset += hexData1.length;
+
+                                                        System.arraycopy(frameId, 0, concatenatedArray, offset, frameId.length);
+                                                        offset += frameId.length;
+
+                                                        System.arraycopy(hexData2, 0, concatenatedArray, offset, hexData2.length);
+                                                        offset += hexData2.length;
+
+//                                                    Log.d("value", "value sent 1 " + SteeringVariables.data5[0] + "value sent 2 : " + SteeringVariables.data5[1]);
+
+                                                        System.arraycopy(SteeringVariables.data5, 0, concatenatedArray, offset, SteeringVariables.data5.length);
+                                                        offset += SteeringVariables.data5.length;
+
+                                                        System.arraycopy(hexData3, 0, concatenatedArray, offset, hexData3.length);
+                                                        if (SteeringVariables.sendReceive != null) {
+                                                            SteeringVariables.sendReceive.write(concatenatedArray);
+                                                        }
+                                                        Thread.sleep(200); // Delay for 1 second (1000 milliseconds)
+                                                    } catch (InterruptedException e) {
+                                                        e.printStackTrace();
+                                                    }
+
+                                                    Log.d(TAG, "run: " + anglelist.toString());
+                                                }
+                                            }
+
+                                            Log.d("value123","after "+SteeringVariables.data5[0]+SteeringVariables.data5[1]);
+
+
                                             SteeringVariables.home_thread_flag = true;
                                         }
 
                                     }).start();
-                                }
+//                                }
 
                                 touchAngle = 0f;
                                 initialTouchAngle = 0f;

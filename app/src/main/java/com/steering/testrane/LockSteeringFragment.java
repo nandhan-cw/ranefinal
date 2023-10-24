@@ -68,28 +68,32 @@ public class LockSteeringFragment extends Fragment {
             @SuppressLint("ResourceAsColor")
             @Override
             public void onClick(View view) {
-                if (SteeringVariables.steeringStatus == "not_locked") {
+//                if(SteeringVariables.steeringauto.equals("offf")){
+//                    Toast.makeText(getContext(), "Cannot lock steering in auto steering mode", Toast.LENGTH_SHORT).show();
+//                }else {
+                    if (SteeringVariables.steeringStatus == "not_locked") {
 //                    Toast.makeText(getActivity(), "if steering status", Toast.LENGTH_SHORT).show();
-                    SteeringVariables.steeringStatus = "locked";
-                    lockedstatus.setText("UNLOCK");
-                    Toast.makeText(getContext(), "Locked", Toast.LENGTH_SHORT).show();
-                    lockicon.setImageResource(R.drawable.baseline_lock_24);
-                    lockedstatus.setBackgroundColor(R.color.grey);
-                    lockedstatus.setBackgroundResource(R.drawable.button);
-                    saveSteeringStatus("locked");
-                }else{
+                        SteeringVariables.steeringStatus = "locked";
+                        lockedstatus.setText("UNLOCK");
+                        Toast.makeText(getContext(), "Locked", Toast.LENGTH_SHORT).show();
+                        lockicon.setImageResource(R.drawable.baseline_lock_24);
+                        lockedstatus.setBackgroundColor(R.color.grey);
+                        lockedstatus.setBackgroundResource(R.drawable.button);
+                        saveSteeringStatus("locked");
+                    } else {
 //                    Toast.makeText(getActivity(), "else  steering status", Toast.LENGTH_SHORT).show();
-                    SteeringVariables.steeringStatus = "not_locked";
-                    lockedstatus.setText("LOCK");
-                    lockicon.setImageResource(R.drawable.baseline_lock_open_24);
-                    Toast.makeText(getContext(), "Unlocked", Toast.LENGTH_SHORT).show();
-                    lockicon.setColorFilter(getResources().getColor(R.color.white));
-                    lockedstatus.setBackgroundColor(R.color.grey);
-                    saveSteeringStatus("not_locked");
-                    lockedstatus.setBackgroundResource(R.drawable.button);
+                        SteeringVariables.steeringStatus = "not_locked";
+                        lockedstatus.setText("LOCK");
+                        lockicon.setImageResource(R.drawable.baseline_lock_open_24);
+                        Toast.makeText(getContext(), "Unlocked", Toast.LENGTH_SHORT).show();
+                        lockicon.setColorFilter(getResources().getColor(R.color.white));
+                        lockedstatus.setBackgroundColor(R.color.grey);
+                        saveSteeringStatus("not_locked");
+                        lockedstatus.setBackgroundResource(R.drawable.button);
 
-                }
-                startSendData();
+                    }
+                    startSendData();
+//                }
             }
 
         });
