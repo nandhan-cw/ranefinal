@@ -3,6 +3,7 @@ package com.steering.testrane;
 
 
 import static com.steering.testrane.SteeringVariables.sendReceive;
+import static com.steering.testrane.SteeringVariables.steeringStatus;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -71,6 +72,7 @@ public class LockSteeringFragment extends Fragment {
 //                if(SteeringVariables.steeringauto.equals("offf")){
 //                    Toast.makeText(getContext(), "Cannot lock steering in auto steering mode", Toast.LENGTH_SHORT).show();
 //                }else {
+                Log.d("steering", "check status: "+steeringStatus.toString());
                     if (SteeringVariables.steeringStatus == "not_locked") {
 //                    Toast.makeText(getActivity(), "if steering status", Toast.LENGTH_SHORT).show();
                         SteeringVariables.steeringStatus = "locked";

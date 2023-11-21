@@ -61,21 +61,38 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/headerbtn"
         android:layout_above="@id/indicator_keys">
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="180dp"
+            android:orientation="horizontal">
+            <RelativeLayout
+                android:id="@+id/swipe_left"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+               >
+
+                <ImageView
+
+                    android:layout_width="60dp"
+                    android:layout_height="50dp"
+                    android:src="@drawable/swipe_left"
+                    android:layout_alignParentBottom="true"
+
+                    ></ImageView>
+            </RelativeLayout>
 
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:id="@+id/vehicles">
+                android:id="@+id/vehicles"
+                android:layout_weight="1">
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:id="@+id/carbody"
-                    android:visibility="gone"
+                    android:visibility="visible"
                     >
 
 
@@ -189,8 +206,21 @@
 
                 </RelativeLayout>
             </LinearLayout>
+            <RelativeLayout
+                android:id="@+id/swipe_right"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent">
+                <ImageView
 
-        </RelativeLayout>
+                    android:layout_width="60dp"
+                    android:layout_height="50dp"
+                    android:src="@drawable/swiper_right"
+                    android:layout_alignParentBottom="true"
+
+
+                    ></ImageView>
+            </RelativeLayout>
+        </LinearLayout>
 
     </ScrollView>
     <LinearLayout
@@ -198,12 +228,14 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:id="@+id/indicator_keys"
+
         android:layout_above="@id/steeringwheel"
         >
         <ImageView
             android:id="@+id/leftkey"
             android:layout_width="50dp"
             android:layout_height="50dp"
+            android:visibility="gone"
             android:src="@drawable/leftkey"/>
 
         <View
@@ -211,9 +243,15 @@
             android:layout_height="0dp"
             android:layout_weight="1"></View>
         <ImageView
+            android:id="@+id/lockicon"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@drawable/lock2"/>
+        <ImageView
             android:id="@+id/rightkey"
             android:layout_width="50dp"
             android:layout_height="50dp"
+            android:visibility="gone"
             android:src="@drawable/rightkey"/>
     </LinearLayout>
     <ImageView

@@ -12,6 +12,9 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentPagerAdapter;
+import androidx.viewpager.widget.ViewPager;
 
 import android.app.Dialog;
 import android.content.Context;
@@ -22,8 +25,11 @@ import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.util.AttributeSet;
 import android.util.Log;
+import android.view.GestureDetector;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.widget.AdapterView;
@@ -41,6 +47,7 @@ import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.slider.Slider;
+import com.google.android.material.tabs.TabLayout;
 
 import org.w3c.dom.Text;
 
@@ -61,8 +68,11 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     Button savebtn;
     Spinner spinner;
     String[] items;
+    int screenWidth;
+    private GestureDetector gestureDetector;
     ArrayAdapter<String> adapter;
     boolean isChecked ;
+    private float startY;
     public static final String SHARED_PREFS = "sharedPrefs";
 
     @Override
@@ -83,21 +93,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         SteeringVariables.max_angle=sharedPreferences.getString("max_angle","180");
         SteeringVariables.vehicle=sharedPreferences.getString("vehicle","car");
 
-//        if(sharedPreferences.contains("steering_auto")){
-//            SteeringVariables.steeringauto=sharedPreferences.getString("steering_auto","off");
-//        }else{
-//            SteeringVariables.steeringauto="off";
-//        }
-//        if(sharedPreferences.contains("max_angle")){
-//            SteeringVariables.max_angle=sharedPreferences.getString("max_angle","180");
-//        }else{
-//            SteeringVariables.max_angle="180";
-//        }
-//        if(sharedPreferences.contains("vehicle")){
-//            SteeringVariables.vehicle=sharedPreferences.getString("vehicle","car");
-//        }else{
-//            SteeringVariables.vehicle="car";
-//        }
+        screenWidth = getWindowManager().getDefaultDisplay().getWidth();
+
 
         if(sharedPreferences.contains("tx") && sharedPreferences.contains("rx")) {
             String hexString = sharedPreferences.getString("tx", "70E");
@@ -115,6 +112,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
 
         loadData();
+
+
 
 
         new Thread(new Runnable() {
@@ -294,116 +293,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         editor.apply();
     }
 
-//    public void settingspopup(Context context) {
-//        final Dialog dialog = new Dialog(context);
-//        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-//        dialog.setContentView(R.layout.settings_popup);
-//        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT)); // Set window background to null
-//        dialog.setCancelable(true); // Set to true if you want to close the dialog when touching outside
-//        ImageView closeBtn = dialog.findViewById(R.id.cancelButton);
-//        maxAngleEditText = dialog.findViewById(R.id.max_angle);
-//        toggleButton = dialog.findViewById(R.id.toggle_button);
-//        savebtn = dialog.findViewById(R.id.savebtn);
-//        maxAngleEditText.setText(SteeringVariables.max_angle);
-//
-//        toggleButton.setChecked(SteeringVariables.steeringauto.equals("on"));
-//        tx = dialog.findViewById(R.id.tx);
-//        rx = dialog.findViewById(R.id.rx);
-//        spinner = dialog.findViewById(R.id.spinner);
-//        items = getResources().getStringArray(R.array.default_options);
-//        adapter = new ArrayAdapter<>(this, R.layout.custom_spinner_dropdown_item, items);
-//        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-//        spinner.setAdapter(adapter);
-//        if(SteeringVariables.vehicle.equals("truck")){
-//            spinner.setSelection(1);
-//        }else if (SteeringVariables.vehicle.equals("tractor")){
-//            spinner.setSelection(2);
-//        }else{
-//            spinner.setSelection(0);
-//        }
-//        Log.d("popup","6");
-//        tx.setText(SteeringVariables.frameId1+"");
-//        rx.setText(SteeringVariables.frameIdRX+"");
-//
-//        Log.d("popup", "vehicle 1st "+SteeringVariables.vehicle.toString());
-//
-//        closeBtn.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                if(maxAngleEditText.getText().toString().isEmpty()){
-//                    SteeringVariables.max_angle = "180";
-//                }else{
-//                    SteeringVariables.max_angle = maxAngleEditText.getText().toString();
-//
-//                }
-//                SteeringVariables.steeringauto = toggleButton.isChecked() ? "on" : "off";
-//                SteeringVariables.vehicle = spinner.getSelectedItem().toString();
-//                saveData();
-//                loadData();
-//                HomeFragment.vehicleChange();
-////                vehicleChoose();
-//                txrxChoose();
-//                HomeFragment.updAngle();
-//                dialog.dismiss();
-//            }
-//        });
-//        savebtn.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//
-//                if(maxAngleEditText.getText().toString().isEmpty()){
-//                    SteeringVariables.max_angle = "180";
-//                }else{
-//                    SteeringVariables.max_angle = maxAngleEditText.getText().toString().trim();
-//                }
-//                SteeringVariables.steeringauto = toggleButton.isChecked() ? "on" : "off";
-//                SteeringVariables.vehicle = spinner.getSelectedItem().toString();
-//                saveData();
-//                loadData();
-////                vehicleChoose();
-//                HomeFragment.vehicleChange();
-//
-//                txrxChoose();
-//                HomeFragment.updAngle();
-//                dialog.dismiss();
-//
-//            }
-//        });
-//        dialog.setOnDismissListener(new DialogInterface.OnDismissListener() {
-//            @Override
-//            public void onDismiss(DialogInterface dialogInterface) {
-//                SteeringVariables.vehicle = spinner.getSelectedItem().toString();
-//                HomeFragment.vehicleChange();
-//                saveData();
-//                loadData();
-//
-//            }
-//        });
-//
-//        dialog.show();
-//    }
 
-
-//    public void saveData(){
-//        SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFS,MODE_PRIVATE);
-//        SharedPreferences.Editor editor = sharedPreferences.edit();
-//        editor.putString("max_angle",SteeringVariables.max_angle.toString());
-//        editor.putString("steering_auto",SteeringVariables.steeringauto.toString());
-//        editor.putString("steeringstatus",SteeringVariables.steeringStatus.toString());
-//        editor.putString("vehicle",SteeringVariables.vehicle.toString());
-//
-//        String hexString = Integer.toHexString(SteeringVariables.frameId1).toUpperCase();
-//        editor.putString("tx", tx.getText().toString().trim());
-//
-//        String hexString1 = Integer.toHexString(SteeringVariables.frameIdRX).toUpperCase();
-//        editor.putString("rx", rx.getText().toString());
-//
-////        editor.putString("rx", rx.getText().toString());
-//        Log.d("sv", "saveData: "+sharedPreferences.getString("rx",""));
-//        Log.d("sv","save "+String.valueOf(SteeringVariables.frameIdRX));
-//
-//        editor.apply();
-//    }
 
     public void settingspopup(Context context) {
         final Dialog dialog = new Dialog(context);
@@ -610,43 +500,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
 
 
-//    public void loadData(){
-//        SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFS,MODE_PRIVATE);
-//        SteeringVariables.max_angle = sharedPreferences.getString("max_angle", "180"); // Load max angle
-//        SteeringVariables.steeringauto = sharedPreferences.getString("steering_auto","off"); // Load steering auto state
-//        SteeringVariables.steeringStatus = sharedPreferences.getString("steeringstatus","not_locked");
-//        SteeringVariables.vehicle = sharedPreferences.getString("vehicle","car");
-//        maxAngleEditText.setText(SteeringVariables.max_angle);  // Set text using SteeringVariables.max_angle
-//        toggleButton.setChecked(SteeringVariables.steeringauto.equals("on"));  // Check toggle button based on SteeringVariables.steeringauto value
-//        LockSteeringFragment fragment = (LockSteeringFragment) getSupportFragmentManager().findFragmentById(R.id.lock);
-//
-//        String hexString = sharedPreferences.getString("tx","70E");
-//        int decimalValue = Integer.parseInt(hexString, 16);
-//        short shortValue = (short) decimalValue;
-//        SteeringVariables.frameId1 = shortValue;
-//
-//        String hexString1 = sharedPreferences.getString("rx","71E");
-//        int decimalValue1 = Integer.parseInt(hexString1, 16);
-//        short shortValue1 = (short) decimalValue1;
-//        SteeringVariables.frameIdRX = shortValue1;
-//
-//        maxAngleEditText.setText(SteeringVariables.max_angle);
-//        toggleButton.setChecked(SteeringVariables.steeringauto.equals("on"));
-//
-//        // Check if the fragment is not null and set the max angle value to the fragment variable
-//        if (fragment != null) {
-//            fragment.lockedstatus.setText(SteeringVariables.max_angle);
-//        }
-//        // Set tx EditText if txValue is not null
-//        String txValue = sharedPreferences.getString("tx", "70E");
-//        if ( txValue!= null) {
-//            tx.setText(txValue.toUpperCase());
-//        }
-//
-//        String rxValue = sharedPreferences.getString("rx", "71E");
-//        if ( rxValue!= null) {
-//            rx.setText(rxValue.toUpperCase());
-//        }
-//    }
+
+
 
 }

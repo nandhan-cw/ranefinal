@@ -17,7 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="Configure"
-            android:textColor="@color/grey"
+            android:textColor="@color/blue"
             android:textSize="30dp"
             android:textStyle="bold"
             android:layout_weight="1"
