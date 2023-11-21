@@ -11,4 +11,8 @@
     <color name="blue">#0288D1</color>
     <color name="blue_dark">#005B9F</color>
     <color name="blue_light">#E1E1E1</color>
+
+
+    <color name="slider_thumb_color">#FF4081</color> <!-- Custom thumb color -->
+    <color name="slider_track_color">#C8E6C9</color> <!-- Custom track color -->
 </resources>

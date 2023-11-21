@@ -21,6 +21,8 @@ public class SteeringVariables {
         return currentFragment;
     }
 
+//    public static String vibration = "0.5";
+
     public static void setCurrentFragment(String fragment) {
         currentFragment = fragment;
     }
