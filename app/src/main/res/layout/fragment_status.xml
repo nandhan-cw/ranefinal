@@ -32,6 +32,7 @@
             android:background="@drawable/buttondis"
             android:backgroundTint="@color/grey"
             android:text="Steering Control"
+            android:visibility="gone"
             android:layout_weight="1"
             android:layout_marginLeft="5dp"
             android:textColor="@color/dark_grey"
@@ -190,5 +191,43 @@
                 android:textStyle="bold"
                 />
         </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/currentvalue"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="15dp"
+            android:layout_below="@id/esensorlayout"
+            >
+            <TextView
+                android:layout_width="120dp"
+                android:layout_height="35dp"
+                android:text="Current"
+                android:textColor="@color/grey"
+                android:layout_weight="1"
+                android:textSize="18dp"
+                />
+            <ImageView
+                android:id="@+id/clight"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:src="@drawable/grnbtn"
+                android:layout_weight="1"
+                />
+            <TextView
+                android:id="@+id/cstatus"
+                android:layout_width="80dp"
+                android:layout_height="35dp"
+                android:text="ok"
+                android:textAlignment="center"
+                android:padding="5dp"
+                android:background="@drawable/btn_outline"
+                android:textSize="18dp"
+                android:textColor="@color/green"
+                android:textStyle="bold"
+                />
+        </LinearLayout>
+
     </RelativeLayout>
 </RelativeLayout>

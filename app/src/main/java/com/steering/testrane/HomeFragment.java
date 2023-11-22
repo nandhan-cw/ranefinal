@@ -43,6 +43,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
@@ -69,7 +70,7 @@ import java.util.UUID;
 public class HomeFragment extends Fragment {
     RelativeLayout swipe_right, swiper_left;
     ImageView steeringwheel;
-    static ImageView bltbtn;
+    static LinearLayout bltbtn;
     ImageView leftkey;
     ImageView rightkey, lockicon;
     ImageView volume;
@@ -118,7 +119,7 @@ public class HomeFragment extends Fragment {
     static ImageView l1wheel;
     static ImageView r1wheel;
     static ImageView l2wheel;
-    static ImageView r2wheel;
+    static ImageView r2wheel, bltbtnimg;
     private boolean isAutoRotationEnabled = false;
     float touchAngle;
     ArrayList<Float> anglelist;
@@ -177,6 +178,7 @@ public class HomeFragment extends Fragment {
         r1wheel = view.findViewById(R.id.r1wheel);
         l2wheel = view.findViewById(R.id.l2wheel);
         r2wheel = view.findViewById(R.id.r2wheel);
+        bltbtnimg = view.findViewById(R.id.bltbtnimg);
         Button write = view.findViewById(R.id.write);
         uniqueAnglesSet = new HashSet<>();
         touchAngle = 0f;
@@ -212,10 +214,10 @@ public class HomeFragment extends Fragment {
         rotateLWheel(floatValue);
 
         if (SteeringVariables.bluetooth) {
-            bltbtn.setImageResource(R.drawable.baseline_bluetooth_24);
+            bltbtnimg.setImageResource(R.drawable.baseline_bluetooth_24);
             int blueColor = ContextCompat.getColor(getContext(), R.color.blue); // R.color.blue should be defined in your resources
             PorterDuff.Mode mode = PorterDuff.Mode.SRC_ATOP;
-            bltbtn.setColorFilter(blueColor, mode);
+            bltbtnimg.setColorFilter(blueColor, mode);
         }
 
 
@@ -234,7 +236,21 @@ public class HomeFragment extends Fragment {
         };
 
         Log.d(TAG, "checkforstatus: ");
-
+        if (SteeringVariables.steeringStatus == "not_locked") {
+//                    Toast.makeText(getActivity(), "if steering status", Toast.LENGTH_SHORT).show();
+            SteeringVariables.steeringStatus = "locked";
+            steeringwheel.setEnabled(false);
+//            Toast.makeText(getContext(), "Locked", Toast.LENGTH_SHORT).show();
+            lockicon.setImageResource(R.drawable.lock1);
+            saveSteeringStatus("locked");
+        } else {
+//                    Toast.makeText(getActivity(), "else  steering status", Toast.LENGTH_SHORT).show();
+            SteeringVariables.steeringStatus = "not_locked";
+            steeringwheel.setEnabled(true);
+            lockicon.setImageResource(R.drawable.lock2);
+//            Toast.makeText(getContext(), "Unlocked", Toast.LENGTH_SHORT).show();
+            saveSteeringStatus("not_locked");
+        }
 
         lockicon.setOnClickListener(new View.OnClickListener() {
             @SuppressLint("ResourceAsColor")
@@ -247,6 +263,7 @@ public class HomeFragment extends Fragment {
                 if (SteeringVariables.steeringStatus == "not_locked") {
 //                    Toast.makeText(getActivity(), "if steering status", Toast.LENGTH_SHORT).show();
                     SteeringVariables.steeringStatus = "locked";
+                    steeringwheel.setEnabled(false);
                     Toast.makeText(getContext(), "Locked", Toast.LENGTH_SHORT).show();
                     lockicon.setImageResource(R.drawable.lock1);
                     saveSteeringStatus("locked");
@@ -254,12 +271,11 @@ public class HomeFragment extends Fragment {
 //                    Toast.makeText(getActivity(), "else  steering status", Toast.LENGTH_SHORT).show();
                     SteeringVariables.steeringStatus = "not_locked";
                     lockicon.setImageResource(R.drawable.lock2);
+                    steeringwheel.setEnabled(true);
                     Toast.makeText(getContext(), "Unlocked", Toast.LENGTH_SHORT).show();
                     saveSteeringStatus("not_locked");
-
-
                 }
-
+                startSendData();
 //                }
             }
 
@@ -282,7 +298,6 @@ public class HomeFragment extends Fragment {
         vehicleChange();
 
         Log.d("status", "onCreateView:status" + SteeringVariables.status_thread_flag.toString());
-
 
         if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.BLUETOOTH) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.BLUETOOTH}, MY_BLUETOOTH_PERMISSION_REQUEST);
@@ -392,211 +407,191 @@ public class HomeFragment extends Fragment {
         });
 
 
-        if (SteeringVariables.steeringStatus.equals("locked")) {
-            steeringwheel.setEnabled(false);
-        } else {
+        steeringwheel.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                float x = event.getX();
+                float y = event.getY();
+                touchAngle = calculateAngle(x, y);
 
-            steeringwheel.setEnabled(true);
-            steeringwheel.setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
-                    float x = event.getX();
-                    float y = event.getY();
-                    touchAngle = calculateAngle(x, y);
+                switch (event.getAction()) {
+                    case MotionEvent.ACTION_DOWN:
+                        initialTouchAngle = touchAngle;
+                        uniqueAnglesSet.clear();// Clear the angle set when a new touch is initiated
+                        break;
 
-                    switch (event.getAction()) {
-                        case MotionEvent.ACTION_DOWN:
-                            initialTouchAngle = touchAngle;
-                            uniqueAnglesSet.clear();// Clear the angle set when a new touch is initiated
-                            break;
-
-                        // Inside MotionEvent.ACTION_MOVE case:
-                        // Define a Set to store unique angles
+                    // Inside MotionEvent.ACTION_MOVE case:
+                    // Define a Set to store unique angles
 // Inside MotionEvent.ACTION_MOVE case:
 
-                        case MotionEvent.ACTION_MOVE:
-                            Log.d("checkinsert", "1");
-                            rotationAngleProcess();
+                    case MotionEvent.ACTION_MOVE:
+                        Log.d("checkinsert", "1");
+                        rotationAngleProcess();
 
-                            float vibrationIntensity = calculateVibrationIntensity(currentRotationAngle);
-                            startVibration(Float.parseFloat(SteeringVariables.vibration));
+                        float vibrationIntensity = calculateVibrationIntensity(currentRotationAngle);
+                        startVibration(Float.parseFloat(SteeringVariables.vibration));
 
-                            break;
+                        break;
 
 
-                        case MotionEvent.ACTION_UP:
-                            SteeringVariables.release = true;
-                            stopVibration();
-                            angleSet.clear();
-                            if ("on".equals(SteeringVariables.steeringauto) && !isRotationInProgress) {
+                    case MotionEvent.ACTION_UP:
+                        SteeringVariables.release = true;
+                        stopVibration();
+                        angleSet.clear();
+                        if ("on".equals(SteeringVariables.steeringauto) && !isRotationInProgress && SteeringVariables.steeringStatus == "not_locked") {
 //                                SteeringVariables.data5 = new byte[]{0x00, 0x00};
-                                // Enable auto rotation and start rotation after ROTATION_DELAY milliseconds
-                                SteeringVariables.home_thread_flag = false;
-                                Log.d("checkvalue1", "ca: " + currentRotationAngle + " ta: " + touchAngle + " ita: " + initialTouchAngle);
-                                Float tempangle = touchAngle;
-                                Float tempia = initialTouchAngle;
-                                Float temoca = currentRotationAngle;
-                                final Float[] tempca = {currentRotationAngle};
-                                float rotationAngleDiff = tempangle - tempia;
-                                // Check if the rotation step is greater than the threshold
-                                if (Math.abs(rotationAngleDiff) >= TOUCH_SENSITIVITY_THRESHOLD) {
-                                    temoca += (rotationAngleDiff > 0) ? ROTATION_STEP : -ROTATION_STEP;
-                                    temoca = Math.min(MAX_ROTATION_ANGLE, Math.max(-MAX_ROTATION_ANGLE, temoca));
-                                }
-                                Log.d("checkvalue:", "value of new angle: " + temoca + " " + tempangle + " " + tempia);
-                                Float finalTemoca = temoca;
-                                new Thread(new Runnable() {
-                                    @Override
-                                    public void run() {
+                            // Enable auto rotation and start rotation after ROTATION_DELAY milliseconds
+                            SteeringVariables.home_thread_flag = false;
+                            Log.d("checkvalue1", "ca: " + currentRotationAngle + " ta: " + touchAngle + " ita: " + initialTouchAngle);
+                            Float tempangle = touchAngle;
+                            Float tempia = initialTouchAngle;
+                            Float temoca = currentRotationAngle;
+                            final Float[] tempca = {currentRotationAngle};
+                            float rotationAngleDiff = tempangle - tempia;
+                            // Check if the rotation step is greater than the threshold
+                            if (Math.abs(rotationAngleDiff) >= TOUCH_SENSITIVITY_THRESHOLD) {
+                                temoca += (rotationAngleDiff > 0) ? ROTATION_STEP : -ROTATION_STEP;
+                                temoca = Math.min(MAX_ROTATION_ANGLE, Math.max(-MAX_ROTATION_ANGLE, temoca));
+                            }
+                            Log.d("checkvalue:", "value of new angle: " + temoca + " " + tempangle + " " + tempia);
+                            Float finalTemoca = temoca;
+                            new Thread(new Runnable() {
+                                @Override
+                                public void run() {
 
-                                        // Calculate the new rotation angle
-                                        SteeringVariables.home_thread_flag = false;
-                                        Log.d("checkvalue1", "ca: " + tempangle);
-                                        if (finalTemoca < 0) {
-                                            for (float i = finalTemoca; i <= 0; i += 10) {
-                                                /// updating data5
-                                                byte[] tempbyte = formatAndConvertData(i);
-                                                Log.d("value123", "minus " + SteeringVariables.data5[0] + SteeringVariables.data5[1]);
-                                                try {
-                                                    byte[] frameId = convertShortToBytes(SteeringVariables.frameId1);
-                                                    byte[] hexData1 = {SteeringVariables.startId};
-                                                    byte[] hexData2 = {SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3};
-                                                    byte[] angleData = SteeringVariables.data5;
-                                                    //                                            Log.d("data","3: "+SteeringVariables.data5[0]+" 4: "+SteeringVariables.data5[1]);
+                                    // Calculate the new rotation angle
+                                    SteeringVariables.home_thread_flag = false;
+                                    Log.d("checkvalue1", "ca: " + tempangle);
+                                    if (finalTemoca < 0) {
+                                        for (float i = finalTemoca; i <= 0; i += 10) {
+                                            /// updating data5
+                                            byte[] tempbyte = formatAndConvertData(i);
+                                            Log.d("value123", "minus " + SteeringVariables.data5[0] + SteeringVariables.data5[1]);
+                                            try {
+                                                byte[] frameId = convertShortToBytes(SteeringVariables.frameId1);
+                                                byte[] hexData1 = {SteeringVariables.startId};
+                                                byte[] hexData2 = {SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3};
+                                                byte[] angleData = SteeringVariables.data5;
+                                                //                                            Log.d("data","3: "+SteeringVariables.data5[0]+" 4: "+SteeringVariables.data5[1]);
 
-                                                    byte[] hexData3 = {SteeringVariables.data6, SteeringVariables.data7, SteeringVariables.data8, SteeringVariables.endId1, SteeringVariables.endId2};
+                                                byte[] hexData3 = {SteeringVariables.data6, SteeringVariables.data7, SteeringVariables.data8, SteeringVariables.endId1, SteeringVariables.endId2};
 
-                                                    int totalLength = frameId.length + hexData1.length + hexData2.length + angleData.length + hexData3.length;
-                                                    byte[] concatenatedArray = new byte[totalLength];
-                                                    int offset = 0;
+                                                int totalLength = frameId.length + hexData1.length + hexData2.length + angleData.length + hexData3.length;
+                                                byte[] concatenatedArray = new byte[totalLength];
+                                                int offset = 0;
 
-                                                    System.arraycopy(hexData1, 0, concatenatedArray, offset, hexData1.length);
-                                                    offset += hexData1.length;
+                                                System.arraycopy(hexData1, 0, concatenatedArray, offset, hexData1.length);
+                                                offset += hexData1.length;
 
-                                                    System.arraycopy(frameId, 0, concatenatedArray, offset, frameId.length);
-                                                    offset += frameId.length;
+                                                System.arraycopy(frameId, 0, concatenatedArray, offset, frameId.length);
+                                                offset += frameId.length;
 
-                                                    System.arraycopy(hexData2, 0, concatenatedArray, offset, hexData2.length);
-                                                    offset += hexData2.length;
-
-//                                                    Log.d("value", "value sent 1 " + SteeringVariables.data5[0] + "value sent 2 : " + SteeringVariables.data5[1]);
-
-                                                    System.arraycopy(SteeringVariables.data5, 0, concatenatedArray, offset, SteeringVariables.data5.length);
-                                                    offset += SteeringVariables.data5.length;
-
-                                                    System.arraycopy(hexData3, 0, concatenatedArray, offset, hexData3.length);
-                                                    if (SteeringVariables.sendReceive != null) {
-                                                        SteeringVariables.sendReceive.write(concatenatedArray);
-                                                    }
-
-                                                    Thread.sleep(2000); // Delay for 1 second (1000 milliseconds)
-                                                } catch (InterruptedException e) {
-                                                    e.printStackTrace();
-                                                }
-
-                                                Log.d(TAG, "run: " + anglelist.toString());
-                                            }
-                                        } else {
-                                            for (float i = finalTemoca; i >= 0; i -= 10) {
-                                                /// updating data5
-                                                byte[] tempbyte = formatAndConvertData(i);
-                                                Log.d("value123", "plus " + SteeringVariables.data5[0] + SteeringVariables.data5[1]);
-                                                try {
-                                                    SteeringVariables.data3=0x01;
-                                                    if(i>=0){
-                                                        SteeringVariables.data3=0x00;
-                                                    }
-                                                    byte[] frameId = convertShortToBytes(SteeringVariables.frameId1);
-                                                    byte[] hexData1 = {SteeringVariables.startId};
-                                                    byte[] hexData2 = {SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3};
-                                                    byte[] angleData = SteeringVariables.data5;
-                                                    //                                            Log.d("data","3: "+SteeringVariables.data5[0]+" 4: "+SteeringVariables.data5[1]);
-
-                                                    byte[] hexData3 = {SteeringVariables.data6, SteeringVariables.data7, SteeringVariables.data8, SteeringVariables.endId1, SteeringVariables.endId2};
-
-                                                    int totalLength = frameId.length + hexData1.length + hexData2.length + angleData.length + hexData3.length;
-                                                    byte[] concatenatedArray = new byte[totalLength];
-                                                    int offset = 0;
-
-                                                    System.arraycopy(hexData1, 0, concatenatedArray, offset, hexData1.length);
-                                                    offset += hexData1.length;
-
-                                                    System.arraycopy(frameId, 0, concatenatedArray, offset, frameId.length);
-                                                    offset += frameId.length;
-
-                                                    System.arraycopy(hexData2, 0, concatenatedArray, offset, hexData2.length);
-                                                    offset += hexData2.length;
+                                                System.arraycopy(hexData2, 0, concatenatedArray, offset, hexData2.length);
+                                                offset += hexData2.length;
 
 //                                                    Log.d("value", "value sent 1 " + SteeringVariables.data5[0] + "value sent 2 : " + SteeringVariables.data5[1]);
 
-                                                    System.arraycopy(SteeringVariables.data5, 0, concatenatedArray, offset, SteeringVariables.data5.length);
-                                                    offset += SteeringVariables.data5.length;
+                                                System.arraycopy(SteeringVariables.data5, 0, concatenatedArray, offset, SteeringVariables.data5.length);
+                                                offset += SteeringVariables.data5.length;
 
-                                                    System.arraycopy(hexData3, 0, concatenatedArray, offset, hexData3.length);
-                                                    if (SteeringVariables.sendReceive != null) {
-                                                        SteeringVariables.sendReceive.write(concatenatedArray);
-                                                    }
-                                                    Thread.sleep(2000); // Delay for 1 second (1000 milliseconds)
-                                                } catch (InterruptedException e) {
-                                                    e.printStackTrace();
+                                                System.arraycopy(hexData3, 0, concatenatedArray, offset, hexData3.length);
+                                                if (SteeringVariables.sendReceive != null) {
+                                                    SteeringVariables.sendReceive.write(concatenatedArray);
                                                 }
 
-                                                Log.d(TAG, "run: " + anglelist.toString());
+                                                Thread.sleep(200); // Delay for 1 second (1000 milliseconds)
+                                            } catch (InterruptedException e) {
+                                                e.printStackTrace();
                                             }
+
+                                            Log.d(TAG, "run: " + anglelist.toString());
                                         }
+                                    } else {
+                                        for (float i = finalTemoca; i >= 0; i -= 10) {
+                                            /// updating data5
+                                            byte[] tempbyte = formatAndConvertData(i);
+                                            Log.d("value123", "plus " + SteeringVariables.data5[0] + SteeringVariables.data5[1]);
+                                            try {
+                                                SteeringVariables.data3 = 0x01;
+                                                if (i >= 0) {
+                                                    SteeringVariables.data3 = 0x00;
+                                                }
+                                                byte[] frameId = convertShortToBytes(SteeringVariables.frameId1);
+                                                byte[] hexData1 = {SteeringVariables.startId};
+                                                byte[] hexData2 = {SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3};
+                                                byte[] angleData = SteeringVariables.data5;
+                                                //                                            Log.d("data","3: "+SteeringVariables.data5[0]+" 4: "+SteeringVariables.data5[1]);
 
-                                        Log.d("value123", "after " + SteeringVariables.data5[0] + SteeringVariables.data5[1]);
+                                                byte[] hexData3 = {SteeringVariables.data6, SteeringVariables.data7, SteeringVariables.data8, SteeringVariables.endId1, SteeringVariables.endId2};
 
+                                                int totalLength = frameId.length + hexData1.length + hexData2.length + angleData.length + hexData3.length;
+                                                byte[] concatenatedArray = new byte[totalLength];
+                                                int offset = 0;
 
-                                        SteeringVariables.home_thread_flag = true;
+                                                System.arraycopy(hexData1, 0, concatenatedArray, offset, hexData1.length);
+                                                offset += hexData1.length;
+
+                                                System.arraycopy(frameId, 0, concatenatedArray, offset, frameId.length);
+                                                offset += frameId.length;
+
+                                                System.arraycopy(hexData2, 0, concatenatedArray, offset, hexData2.length);
+                                                offset += hexData2.length;
+
+//                                                    Log.d("value", "value sent 1 " + SteeringVariables.data5[0] + "value sent 2 : " + SteeringVariables.data5[1]);
+
+                                                System.arraycopy(SteeringVariables.data5, 0, concatenatedArray, offset, SteeringVariables.data5.length);
+                                                offset += SteeringVariables.data5.length;
+
+                                                System.arraycopy(hexData3, 0, concatenatedArray, offset, hexData3.length);
+                                                if (SteeringVariables.sendReceive != null) {
+                                                    SteeringVariables.sendReceive.write(concatenatedArray);
+                                                }
+                                                Thread.sleep(200); // Delay for 1 second (1000 milliseconds)
+                                            } catch (InterruptedException e) {
+                                                e.printStackTrace();
+                                            }
+
+                                            Log.d(TAG, "run: " + anglelist.toString());
+                                        }
                                     }
 
-                                }).start();
+                                    Log.d("value123", "after " + SteeringVariables.data5[0] + SteeringVariables.data5[1]);
+
+
+                                    SteeringVariables.home_thread_flag = true;
+
+
+                                }
+
+                            }).start();
 //                                }
 
-                                touchAngle = 0f;
-                                initialTouchAngle = 0f;
-                                currentRotationAngle = 0f;
-                                rotationHandler.postDelayed(new Runnable() {
-                                    @Override
-                                    public void run() {
-//                                        float rotationAngleDiff = touchAngle - initialTouchAngle;
-//                                        // Check if the rotation step is greater than the threshold
-//                                        if (Math.abs(rotationAngleDiff) >= TOUCH_SENSITIVITY_THRESHOLD) {
-//                                            // Calculate the new rotation angle
-//                                            currentRotationAngle += (rotationAngleDiff > 0) ? ROTATION_STEP : -ROTATION_STEP;
-//                                            // Ensure the rotation angle is within 360 degrees
-//                                            currentRotationAngle = Math.min(MAX_ROTATION_ANGLE, Math.max(-MAX_ROTATION_ANGLE, currentRotationAngle));
-//
-//                                        }
-//                                        Float currAngle = currentRotationAngle;
-//
-//                                        Log.d("valuecheck1",anglelist.size()+" size");
-//
-//                                        for (Float value : anglelist) {
-//                                            Log.d("valuecheck1",""+value);
-//
-//                                        }
-////                                        rotateLWheel(Float.parseFloat(temp.toString()));
-                                        ObjectAnimator rotateAnimator1 = ObjectAnimator.ofFloat(wheelL, "rotation", wheelL.getRotation(), Float.parseFloat("0"));
-                                        rotateAnimator1.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
-                                        rotateAnimator1.start();
-                                        ObjectAnimator rotateAnimator2 = ObjectAnimator.ofFloat(wheelR, "rotation", wheelR.getRotation(), Float.parseFloat("0"));
-                                        rotateAnimator2.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
-                                        rotateAnimator2.start();
-                                        rotateSteeringWheel(0); // Rotate to 0 degrees
-//                                        touchAngle = 0f;
-                                    }
-                                }, ROTATION_DELAY);
-                                // Iterate through the list and send each value via Bluetooth
+                            touchAngle = 0f;
+                            initialTouchAngle = 0f;
+                            currentRotationAngle = 0f;
 
-                            }
-                            break;
-                    }
-                    return true;
+                            rotationHandler.postDelayed(new Runnable() {
+                                @Override
+                                public void run() {
+                                    ObjectAnimator rotateAnimator1 = ObjectAnimator.ofFloat(wheelL, "rotation", wheelL.getRotation(), Float.parseFloat("0"));
+                                    rotateAnimator1.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
+                                    rotateAnimator1.start();
+                                    ObjectAnimator rotateAnimator2 = ObjectAnimator.ofFloat(wheelR, "rotation", wheelR.getRotation(), Float.parseFloat("0"));
+                                    rotateAnimator2.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
+                                    rotateAnimator2.start();
+                                    rotateSteeringWheel(0); // Rotate to 0 degrees
+//                                        touchAngle = 0f;
+                                }
+                            }, ROTATION_DELAY);
+
+                            // Iterate through the list and send each value via Bluetooth
+
+                        }
+                        break;
                 }
-            });
-        }
+                return true;
+            }
+        });
 
         bltbtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -611,9 +606,19 @@ public class HomeFragment extends Fragment {
                     } catch (Exception e) {
                         throw new RuntimeException(e);
                     }
-                    Toast.makeText(getContext(), "Already connected", Toast.LENGTH_SHORT).show();
+
+                    if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+                        return;
+                    }
+                    bluetoothAdapter.disable();
+                    bltbtnimg.setImageResource(R.drawable.baseline_bluetooth_disabled_24);
+                    bltbtnimg.setColorFilter(ContextCompat.getColor(getContext(), R.color.grey_light), android.graphics.PorterDuff.Mode.MULTIPLY);
+                    connectStatus.setText("Not Connected");
+                    SteeringVariables.bluetooth = false;
+                    Toast.makeText(getContext(), "Disonnected", Toast.LENGTH_SHORT);
 
                 } else {
+                    bluetoothAdapter.enable();
                     blueToothListPopup(getContext());
 
                 }
@@ -621,6 +626,21 @@ public class HomeFragment extends Fragment {
         });
         return view;
 
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        ObjectAnimator rotateAnimator1 = ObjectAnimator.ofFloat(wheelL, "rotation", wheelL.getRotation(), Float.parseFloat("0"));
+        rotateAnimator1.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
+        rotateAnimator1.start();
+        ObjectAnimator rotateAnimator2 = ObjectAnimator.ofFloat(wheelR, "rotation", wheelR.getRotation(), Float.parseFloat("0"));
+        rotateAnimator2.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
+        rotateAnimator2.start();
+        rotateSteeringWheel(0);
+        touchAngle = 0f;
+        initialTouchAngle = 0f;
+        currentRotationAngle = 0f;
     }
 
     public void rotationAngleProcess() {
@@ -844,7 +864,6 @@ public class HomeFragment extends Fragment {
         exitDialog.show();
     }
 
-
     public void blueToothListPopup(Context context) {
         final Dialog dialog = new Dialog(context);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -866,8 +885,16 @@ public class HomeFragment extends Fragment {
 
         if (SteeringVariables.bluetoothAdapter != null && SteeringVariables.bluetoothAdapter.isEnabled()
                 && SteeringVariables.bluetoothAdapter.getProfileConnectionState(BluetoothHeadset.HEADSET) == BluetoothAdapter.STATE_CONNECTED) {
-            Toast.makeText(getContext(), "Already Connected", Toast.LENGTH_SHORT);
+            bluetoothAdapter.disable();
+            Message message = Message.obtain();
+            message.what = STATE_CANCELLED;
+            handler.sendMessage(message);
+            SteeringVariables.bluetooth = false;
+
+
+            Toast.makeText(getContext(), "Disconnected", Toast.LENGTH_SHORT);
         } else {
+//            bluetoothAdapter.enable();
             if (bt.size() > 0) {
                 for (BluetoothDevice device : bt) {
                     btArray[index] = device;
@@ -876,6 +903,10 @@ public class HomeFragment extends Fragment {
                 }
                 ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(getContext(), android.R.layout.simple_list_item_1, strings);
                 listView.setAdapter(arrayAdapter);
+                dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
+                dialog.show();
+            } else {
+                blueToothListPopup(context);
             }
 
             listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -891,9 +922,6 @@ public class HomeFragment extends Fragment {
                 }
             });
 
-
-            dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
-            dialog.show();
 
         }
 
@@ -1012,6 +1040,7 @@ public class HomeFragment extends Fragment {
             try {
 //                if (ActivityCompat.checkSelfPermission(getContext(), android.Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
 //                }
+
                 ParcelUuid[] pu = device.getUuids();
 
                 if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
@@ -1219,7 +1248,7 @@ public class HomeFragment extends Fragment {
                     SteeringVariables.home_thread_flag=true;
                     SteeringVariables.sendReceive=null;
                     SteeringVariables.bluetoothAdapter = null;
-                    bltbtn.setImageResource(R.drawable.baseline_bluetooth_disabled_24);
+                    bltbtnimg.setImageResource(R.drawable.baseline_bluetooth_disabled_24);
                     connectStatus.setText("Not Connected");
                     break;
                 case STATE_LISTENING:
@@ -1351,10 +1380,10 @@ public class HomeFragment extends Fragment {
 //                            Toast.makeText(getContext(), "hellloooooo", Toast.LENGTH_SHORT).show();
                         // Handle the case where Bluetooth connection or message sending is not available
                     }
-                    bltbtn.setImageResource(R.drawable.baseline_bluetooth_24);
+                    bltbtnimg.setImageResource(R.drawable.baseline_bluetooth_24);
                     int blueColor = ContextCompat.getColor(getContext(), R.color.blue); // R.color.blue should be defined in your resources
                     PorterDuff.Mode mode = PorterDuff.Mode.SRC_ATOP;
-                    bltbtn.setColorFilter(blueColor, mode);
+                    bltbtnimg.setColorFilter(blueColor, mode);
                     break;
                 case STATE_CONNECTION_FAILED:
                     connectStatus.setText("Connection Failed");

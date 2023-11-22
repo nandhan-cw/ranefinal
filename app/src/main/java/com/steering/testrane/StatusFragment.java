@@ -36,8 +36,8 @@ public class StatusFragment extends Fragment {
 
     Button steerControl;
     FragmentManager fragmentManager;
-    ImageView alight,mlight,tlight,elight;
-    static TextView astatus,mstatus,tstatus,estatus;
+    ImageView alight,mlight,tlight,elight,clight;
+    static TextView astatus,mstatus,tstatus,estatus,cstatus;
     static final int STATE_MESSAGE_RECEIVED = 5;
 
     @Override
@@ -55,10 +55,12 @@ public class StatusFragment extends Fragment {
         mstatus = view.findViewById(R.id.mstatus);
         tstatus= view.findViewById(R.id.tstatus);
         estatus = view.findViewById(R.id.estatus);
+        cstatus = view.findViewById(R.id.cstatus);
         alight = view.findViewById(R.id.alight);
         mlight = view.findViewById(R.id.mlight);
         tlight  = view.findViewById(R.id.tlight);
         elight = view.findViewById(R.id.elight);
+        clight = view.findViewById(R.id.clight);
         steerControl.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -93,7 +95,7 @@ public class StatusFragment extends Fragment {
             readData();
         }
         else{
-            Toast.makeText(getContext(), "Connect to bluetooth", Toast.LENGTH_SHORT).show();
+//            Toast.makeText(getContext(), "Connect to bluetooth", Toast.LENGTH_SHORT).show();
         }
 
 //        HomeFragment.sendReceive.write();
@@ -190,6 +192,11 @@ public class StatusFragment extends Fragment {
     Handler handler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
+            if (!isAdded()) {
+                // Fragment is not attached; avoid accessing resources
+                return false;
+            }
+
             switch (msg.what) {
                 case STATE_MESSAGE_RECEIVED:
                     byte[] readBuff = (byte[]) msg.obj;
@@ -213,7 +220,7 @@ public class StatusFragment extends Fragment {
 //                                alight.setImageResource(R.drawable.redbtn);
                             }
                     }
-                    else if(onedata==0x03){
+                    if(onedata==0x03){
 
                         if(HomeFragment.byteToHex(fourdata).toLowerCase().equals("3e")){
                             // change light to green in motor and ecu
@@ -227,38 +234,48 @@ public class StatusFragment extends Fragment {
                             mstatus.setTextColor(getResources().getColor(R.color.red));
                             mlight.setImageResource(R.drawable.redbtn);
                         }
+
                         if(HomeFragment.byteToHex(fivedata).toLowerCase().equals("3e")){
                             // change light to green in motor and ecu
                             estatus.setText("ok");
                             estatus.setTextColor(getResources().getColor(R.color.green));
                             elight.setImageResource(R.drawable.grnbtn);
                         }
-                        else if(HomeFragment.byteToHex(fivedata).toLowerCase().equals("7e")){
+                       else if(HomeFragment.byteToHex(fivedata).toLowerCase().equals("7e")){
                             // change light to red in motor and ecu
                             estatus.setText("err");
                             estatus.setTextColor(getResources().getColor(R.color.red));
                             elight.setImageResource(R.drawable.redbtn);
                         }
+
                     }
-                    else if(onedata==0x04){
-                        if(HomeFragment.byteToHex(fourdata).toLowerCase().equals("3e")){
+                    if(onedata==0x04){
+                        if(HomeFragment.byteToHex(sevendata).toLowerCase().equals("3e")){
                             tstatus.setText("ok");
                             tstatus.setTextColor(getResources().getColor(R.color.green));
                             tlight.setImageResource(R.drawable.grnbtn);
                         }
-                        else if(HomeFragment.byteToHex(fourdata).toLowerCase().equals("7e")){
+
+                        else if(HomeFragment.byteToHex(sevendata).toLowerCase().equals("7e")){
                             tstatus.setText("err");
                             tstatus.setTextColor(getResources().getColor(R.color.red));
                             tlight.setImageResource(R.drawable.redbtn);
                         }
+
                     }
-                    else if(onedata==0x05){
-                        if(HomeFragment.byteToHex(sevendata).toLowerCase().equals("3e")){
 
+                    if(onedata==0x05){
+                        if(HomeFragment.byteToHex(fivedata).toLowerCase().equals("3e")){
+                            cstatus.setText("ok");
+                            cstatus.setTextColor(getResources().getColor(R.color.green));
+                            clight.setImageResource(R.drawable.grnbtn);
                         }
-                        else if(HomeFragment.byteToHex(sevendata).toLowerCase().equals("7e")){
+                         else if(HomeFragment.byteToHex(fivedata).toLowerCase().equals("7e")){
+                            cstatus.setText("err");
+                            cstatus.setTextColor(getResources().getColor(R.color.red));
+                            clight.setImageResource(R.drawable.redbtn);
+                        }
 
-                        }
                     }
 
                     break;

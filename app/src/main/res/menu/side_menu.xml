@@ -11,6 +11,7 @@
     <item
         android:id="@+id/lock"
         android:title="LOck Steering"
+        android:visible="false"
         android:icon="@drawable/baseline_drive_eta_24"/>
     <item
         android:id="@+id/logout"

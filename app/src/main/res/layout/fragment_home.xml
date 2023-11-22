@@ -17,15 +17,17 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="vertical"
+            android:id="@+id/bltbtn"
+
             >
+
             <ImageView
-                android:id="@+id/bltbtn"
-                android:layout_width="40dp"
+                android:id="@+id/bltbtnimg"
+                android:layout_width="35dp"
                 android:layout_height="40dp"
-                android:src="@drawable/baseline_bluetooth_disabled_24"
-                android:tint="@color/grey"
                 android:layout_gravity="center"
-                />
+                android:src="@drawable/baseline_bluetooth_disabled_24"
+                android:tint="@color/grey" />
             <TextView
                 android:id="@+id/connectStatus"
                 android:layout_width="wrap_content"
@@ -69,6 +71,7 @@
                 android:id="@+id/swipe_left"
                 android:layout_width="wrap_content"
                 android:layout_height="match_parent"
+                android:visibility="gone"
                >
 
                 <ImageView
@@ -206,9 +209,11 @@
 
                 </RelativeLayout>
             </LinearLayout>
+
             <RelativeLayout
                 android:id="@+id/swipe_right"
                 android:layout_width="wrap_content"
+                android:visibility="gone"
                 android:layout_height="match_parent">
                 <ImageView
 
