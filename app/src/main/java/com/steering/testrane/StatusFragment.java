@@ -201,10 +201,14 @@ public class StatusFragment extends Fragment {
             switch (msg.what) {
                 case STATE_MESSAGE_RECEIVED:
                     byte[] readBuff = (byte[]) msg.obj;
-                    if(readBuff[0]==0x40) {
+                    byte[] frameId = HomeFragment.convertShortToBytes(SteeringVariables.frameIdRX);
+//                    Log.d("check_value","1: "+frameId[0]+" 2: "+frameId[1]);
+//                    readBuff[1]==frameId[0] && readBuff[2]==frameId[1] &&
+                    if(readBuff[0]==0x40 && readBuff[1]==frameId[0] && readBuff[2]==frameId[1] && readBuff[3]==0x08 && readBuff[13]==0x0A && readBuff[12]==0x0D) {
                         byte onedata = readBuff[4];
-                        Log.d("check_value", "received " + readBuff[0] + " " + readBuff[1] + " " + readBuff[2] + " " + readBuff[3] + " " + readBuff[4] + " " + readBuff[5] + " " + readBuff[6] + " " + readBuff[7] + " " + readBuff[8] + " " + readBuff[9] + " " + readBuff[10] + " " + readBuff[11]+ " " + readBuff[12]+ " " + readBuff[13]);
-                        if (onedata == 0x02) {
+                        if (onedata == 0x02 && readBuff[9]==0x00 && readBuff[10]==0x00  && readBuff[11]==0x00) {
+                            Log.d("check_value", "received " + readBuff[0] + " " + readBuff[1] + " " + readBuff[2] + " " + readBuff[3] + " " + readBuff[4] + " " + readBuff[5] + " " + readBuff[6] + " " + readBuff[7] + " " + readBuff[8] + " " + readBuff[9] + " " + readBuff[10] + " " + readBuff[11]+ " " + readBuff[12]+ " " + readBuff[13]);
+
                             byte threedata = readBuff[6];
                             byte fourdata = readBuff[7];
                             byte fivedata = readBuff[8];

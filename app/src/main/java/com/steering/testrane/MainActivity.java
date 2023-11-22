@@ -3,6 +3,7 @@ package com.steering.testrane;
 import static android.provider.Telephony.Mms.Part.TEXT;
 import static android.service.controls.ControlsProviderService.TAG;
 
+import static com.steering.testrane.SteeringVariables.sendReceive;
 import static java.lang.Integer.parseInt;
 
 import androidx.annotation.NonNull;
@@ -311,8 +312,14 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFS,MODE_PRIVATE);
         String temp = sharedPreferences.getString("max_angle", "180");
         if(temp=="0"){
+            if(HomeFragment.inputStream!=null && HomeFragment.outputStream!=null && sendReceive!=null && SteeringVariables.max_angle!="180"){
+                sendData();
+            }
             SteeringVariables.max_angle = "180";
         }else{
+            if(HomeFragment.inputStream!=null && HomeFragment.outputStream!=null && sendReceive!=null && SteeringVariables.max_angle!=temp){
+                sendData();
+            }
             SteeringVariables.max_angle = temp;
         }
 
@@ -358,18 +365,19 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         slider.setValue(Float.parseFloat(SteeringVariables.vibration));
 
-
-
-
-
         closeBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if(maxAngleEditText.getText().toString().isEmpty()){
+                    if(HomeFragment.inputStream!=null && HomeFragment.outputStream!=null && sendReceive!=null && SteeringVariables.max_angle!="180"){
+                        sendData();
+                    }
                     SteeringVariables.max_angle = "180";
                 }else{
+                    if(HomeFragment.inputStream!=null && HomeFragment.outputStream!=null && sendReceive!=null && SteeringVariables.max_angle!=maxAngleEditText.getText().toString().trim()){
+                        sendData();
+                    }
                     SteeringVariables.max_angle = maxAngleEditText.getText().toString().trim();
-
                 }
                 SteeringVariables.steeringauto = toggleButton.isChecked() ? "on" : "off";
                 SteeringVariables.vehicle = spinner.getSelectedItem().toString();
@@ -387,13 +395,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             public void onClick(View view) {
                 Toast.makeText(context, "saved", Toast.LENGTH_SHORT).show();
                 if(maxAngleEditText.getText().toString().isEmpty()){
+                    if(HomeFragment.inputStream!=null && HomeFragment.outputStream!=null && sendReceive!=null && SteeringVariables.max_angle!="180"){
+                        sendData();
+                    }
                     SteeringVariables.max_angle = "180";
+
                 }else{
-                    SteeringVariables.max_angle = maxAngleEditText.getText().toString();
+                    String ma  = maxAngleEditText.getText().toString();
+                    if(HomeFragment.inputStream!=null && HomeFragment.outputStream!=null && sendReceive!=null && SteeringVariables.max_angle!=ma){
+                        sendData();
+                    }
+                    SteeringVariables.max_angle = ma;
 
                 }
                 SteeringVariables.steeringauto = toggleButton.isChecked() ? "on" : "off";
                 SteeringVariables.vehicle = spinner.getSelectedItem().toString();
+
                 saveData();
                 loadData();
 //                vehicleChoose();
@@ -442,6 +459,64 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         editor.apply();
         Log.d("maxangle","save: "+sharedPreferences.getString("max_angle", "")+" sv: "+SteeringVariables.max_angle);
+
+
+
+    }
+
+    private void sendData(){
+        while(sendReceive==null){
+            Log.d("status","sendreceive no");
+            if(sendReceive!=null) break;
+        }
+        if(sendReceive!=null){
+            Log.d("status","sendreceive yes");
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    Log.d("status","status run()");
+                    try {
+//                        HomeFragment.SteeringVariables.max_angle;
+                        byte[] doublebyte = formatAndConvertData(Float.parseFloat(SteeringVariables.max_angle));
+                        byte[] frameId = HomeFragment.convertShortToBytes(SteeringVariables.frameId1);
+                        byte[] concatenatedArray02 = {SteeringVariables.startId,frameId[0],frameId[1], SteeringVariables.dlc,0x06,doublebyte[0],doublebyte[1],SteeringVariables.data5[0],SteeringVariables.data5[1],SteeringVariables.data6,SteeringVariables.data7,SteeringVariables.data8,SteeringVariables.endId1,SteeringVariables.endId2};
+
+                        sendReceive.write(concatenatedArray02);
+                        Thread.sleep(500); // Delay for 1 second (1000 milliseconds)
+                    } catch (InterruptedException e) {
+                        Log.d("status","thread ex "+e);
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+
+        }
+    }
+
+    private byte[] formatAndConvertData(float angle) {
+        int angleValue = (int) angle;
+        Log.d("value11", "angle1 : " + angleValue);
+
+        String hexAngle = Integer.toHexString(angleValue);
+
+        Log.d("value11", "hexstring : " + hexAngle);
+
+        if (angleValue <= 255) {
+            byte[] byteArray = new byte[2];
+            byteArray[0] = 0x00;
+            byteArray[1] = (byte) Integer.parseInt(hexAngle, 16);
+            Log.d("value11", "data1 : " + byteArray[0] + " data2: " + byteArray[1]);
+            return byteArray;
+        } else {
+            // If angle is more than 255, store it in a double byte array
+            byte[] doubleByteArray = new byte[2];
+            doubleByteArray[0] = (byte) Integer.parseInt(hexAngle.substring(0, 2), 16);
+            doubleByteArray[1] = (byte) Integer.parseInt(hexAngle.substring(2), 16);
+            Log.d("value11", "data1 : " + doubleByteArray[0] + " data2: " + doubleByteArray[1]);
+            return doubleByteArray;
+        }
+
     }
 
     public void loadData(){
