@@ -176,6 +176,7 @@ public class StatusFragment extends Fragment {
                 while (true) {
                     try {
                         bytes[0] = HomeFragment.inputStream.read(buffer);
+
                         handler.obtainMessage(STATE_MESSAGE_RECEIVED, bytes[0], -1, buffer).sendToTarget();
                     } catch (Exception e) {
                         Log.d("value", "ex: " + e);
@@ -196,86 +197,87 @@ public class StatusFragment extends Fragment {
                 // Fragment is not attached; avoid accessing resources
                 return false;
             }
-
+//            64 4 14 8 4 126 0 0 0 0 62 0 13 10
             switch (msg.what) {
                 case STATE_MESSAGE_RECEIVED:
                     byte[] readBuff = (byte[]) msg.obj;
-                    byte onedata = readBuff[4];
-                    byte sevendata = readBuff[10];
-                    byte threedata = readBuff[6];
-                    byte fourdata = readBuff[7];
-                    byte fivedata = readBuff[8];
-                    int decimalValue = (fourdata & 0xFF) << 8 | (fivedata & 0xFF);
-
-
-                    if(onedata==0x02){
-                            if(HomeFragment.byteToHex(threedata).toLowerCase().equals("00")){
-                                String temp = ""+decimalValue;
+                    if(readBuff[0]==0x40) {
+                        byte onedata = readBuff[4];
+                        Log.d("check_value", "received " + readBuff[0] + " " + readBuff[1] + " " + readBuff[2] + " " + readBuff[3] + " " + readBuff[4] + " " + readBuff[5] + " " + readBuff[6] + " " + readBuff[7] + " " + readBuff[8] + " " + readBuff[9] + " " + readBuff[10] + " " + readBuff[11]+ " " + readBuff[12]+ " " + readBuff[13]);
+                        if (onedata == 0x02) {
+                            byte threedata = readBuff[6];
+                            byte fourdata = readBuff[7];
+                            byte fivedata = readBuff[8];
+                            int decimalValue = (fourdata & 0xFF) << 8 | (fivedata & 0xFF);
+                            if (HomeFragment.byteToHex(threedata).toLowerCase().equals("00")) {
+                                String temp = "" + decimalValue;
                                 astatus.setText(temp);
 //                                alight.setImageResource(R.drawable.grnbtn);
-                            }
-                            else if(HomeFragment.byteToHex(threedata).toLowerCase().equals("01")){
-                                String temp = "-"+decimalValue;
+                            } else if (HomeFragment.byteToHex(threedata).toLowerCase().equals("01")) {
+                                String temp = "-" + decimalValue;
                                 astatus.setText(temp);
 //                                alight.setImageResource(R.drawable.redbtn);
                             }
-                    }
-                    if(onedata==0x03){
-
-                        if(HomeFragment.byteToHex(fourdata).toLowerCase().equals("3e")){
-                            // change light to green in motor and ecu
-                            mstatus.setText("ok");
-                            mstatus.setTextColor(getResources().getColor(R.color.green));
-                            mlight.setImageResource(R.drawable.grnbtn);
-                        }
-                        else if(HomeFragment.byteToHex(fourdata).toLowerCase().equals("7e")){
-                            // change light to red in motor and ecu
-                            mstatus.setText("err");
-                            mstatus.setTextColor(getResources().getColor(R.color.red));
-                            mlight.setImageResource(R.drawable.redbtn);
                         }
 
-                        if(HomeFragment.byteToHex(fivedata).toLowerCase().equals("3e")){
-                            // change light to green in motor and ecu
-                            estatus.setText("ok");
-                            estatus.setTextColor(getResources().getColor(R.color.green));
-                            elight.setImageResource(R.drawable.grnbtn);
-                        }
-                       else if(HomeFragment.byteToHex(fivedata).toLowerCase().equals("7e")){
-                            // change light to red in motor and ecu
-                            estatus.setText("err");
-                            estatus.setTextColor(getResources().getColor(R.color.red));
-                            elight.setImageResource(R.drawable.redbtn);
+                        if (onedata == 0x03) {
+                            byte fourdata = readBuff[7];
+                            byte fivedata = readBuff[8];
+                            if (HomeFragment.byteToHex(fourdata).toLowerCase().equals("3e")) {
+                                // change light to green in motor and ecu
+                                mstatus.setText("ok");
+                                mstatus.setTextColor(getResources().getColor(R.color.green));
+                                mlight.setImageResource(R.drawable.grnbtn);
+                            } else if (HomeFragment.byteToHex(fourdata).toLowerCase().equals("7e")) {
+                                // change light to red in motor and ecu
+                                mstatus.setText("err");
+                                mstatus.setTextColor(getResources().getColor(R.color.red));
+                                mlight.setImageResource(R.drawable.redbtn);
+                            }
+
+                            if (HomeFragment.byteToHex(fivedata).toLowerCase().equals("3e")) {
+                                // change light to green in motor and ecu
+                                estatus.setText("ok");
+                                estatus.setTextColor(getResources().getColor(R.color.green));
+                                elight.setImageResource(R.drawable.grnbtn);
+                            } else if (HomeFragment.byteToHex(fivedata).toLowerCase().equals("7e")) {
+                                // change light to red in motor and ecu
+                                estatus.setText("err");
+                                estatus.setTextColor(getResources().getColor(R.color.red));
+                                elight.setImageResource(R.drawable.redbtn);
+                            }
+
                         }
 
-                    }
-                    if(onedata==0x04){
-                        if(HomeFragment.byteToHex(sevendata).toLowerCase().equals("3e")){
-                            tstatus.setText("ok");
-                            tstatus.setTextColor(getResources().getColor(R.color.green));
-                            tlight.setImageResource(R.drawable.grnbtn);
+                        if (onedata == 0x04) {
+                            byte sevendata = readBuff[10];
+                            byte fourdata = readBuff[7];
+                            byte fivedata = readBuff[8];
+                            if (HomeFragment.byteToHex(sevendata).toLowerCase().equals("3e")) {
+                                tstatus.setText("ok");
+                                tstatus.setTextColor(getResources().getColor(R.color.green));
+                                tlight.setImageResource(R.drawable.grnbtn);
+                            } else if (HomeFragment.byteToHex(sevendata).toLowerCase().equals("7e")) {
+                                tstatus.setText("err");
+                                tstatus.setTextColor(getResources().getColor(R.color.red));
+                                tlight.setImageResource(R.drawable.redbtn);
+                            }
+
                         }
 
-                        else if(HomeFragment.byteToHex(sevendata).toLowerCase().equals("7e")){
-                            tstatus.setText("err");
-                            tstatus.setTextColor(getResources().getColor(R.color.red));
-                            tlight.setImageResource(R.drawable.redbtn);
+                        if (onedata == 0x05) {
+                            byte fourdata = readBuff[7];
+                            byte fivedata = readBuff[8];
+                            if (HomeFragment.byteToHex(fivedata).toLowerCase().equals("3e")) {
+                                cstatus.setText("ok");
+                                cstatus.setTextColor(getResources().getColor(R.color.green));
+                                clight.setImageResource(R.drawable.grnbtn);
+                            } else if (HomeFragment.byteToHex(fivedata).toLowerCase().equals("7e")) {
+                                cstatus.setText("err");
+                                cstatus.setTextColor(getResources().getColor(R.color.red));
+                                clight.setImageResource(R.drawable.redbtn);
+                            }
                         }
-
-                    }
-
-                    if(onedata==0x05){
-                        if(HomeFragment.byteToHex(fivedata).toLowerCase().equals("3e")){
-                            cstatus.setText("ok");
-                            cstatus.setTextColor(getResources().getColor(R.color.green));
-                            clight.setImageResource(R.drawable.grnbtn);
-                        }
-                         else if(HomeFragment.byteToHex(fivedata).toLowerCase().equals("7e")){
-                            cstatus.setText("err");
-                            cstatus.setTextColor(getResources().getColor(R.color.red));
-                            clight.setImageResource(R.drawable.redbtn);
-                        }
-
                     }
 
                     break;
