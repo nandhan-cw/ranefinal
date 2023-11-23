@@ -203,7 +203,7 @@ public class HomeFragment extends Fragment {
         Log.d("dataa", SteeringVariables.max_angle);
         MAX_ROTATION_ANGLE = Float.parseFloat(SteeringVariables.max_angle);
         sharedPreferences = getActivity().getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE);
-        SteeringVariables.steeringStatus = sharedPreferences.getString("steeringStatus", "not_locked");
+        SteeringVariables.steeringStatus = sharedPreferences.getString("steeringstatus", "not_locked");
         SteeringVariables.max_angle = sharedPreferences.getString("max_angle", "0");
 
 //        SteeringVariables.home_thread_flag= true;
@@ -246,7 +246,7 @@ public class HomeFragment extends Fragment {
         vehicleChange();
 
         rotateLWheel(floatValue);
-
+        Log.d("checksteer","3 "+SteeringVariables.steeringStatus);
         if (SteeringVariables.steeringStatus.equals("not_locked")) {
             steeringwheel.setEnabled(true);
 
@@ -543,6 +543,10 @@ public class HomeFragment extends Fragment {
                                                     byte[] tempbyte = formatAndConvertData(i);
                                                     Log.d("value123", "plus " + SteeringVariables.data5[0] + SteeringVariables.data5[1]);
                                                     try {
+                                                        SteeringVariables.data3 = 0x01;
+                                                        if (i >= 0) {
+                                                            SteeringVariables.data3 = 0x00;
+                                                        }
                                                         byte[] frameId = convertShortToBytes(SteeringVariables.frameId1);
                                                         byte[] hexData1 = {SteeringVariables.startId};
                                                         byte[] hexData2 = {SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3};
@@ -667,7 +671,7 @@ public class HomeFragment extends Fragment {
     private void saveSteeringStatus(String status) {
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("steeringStatus", status);
+        editor.putString("steeringstatus", status);
         editor.apply();
     }
 

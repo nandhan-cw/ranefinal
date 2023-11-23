@@ -443,6 +443,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString("max_angle",SteeringVariables.max_angle.toString());
         editor.putString("steering_auto",SteeringVariables.steeringauto.toString());
+        Log.d("checksteer","1 "+SteeringVariables.steeringStatus);
         editor.putString("steeringstatus",SteeringVariables.steeringStatus.toString());
         editor.putString("vehicle",SteeringVariables.vehicle.toString());
 
@@ -526,6 +527,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         SteeringVariables.max_angle = sharedPreferences.getString("max_angle", "180"); // Load max angle
         SteeringVariables.steeringauto = sharedPreferences.getString("steering_auto","off"); // Load steering auto state
         SteeringVariables.steeringStatus = sharedPreferences.getString("steeringstatus","not_locked");
+        Log.d("checksteer","2 "+SteeringVariables.steeringStatus);
+
         SteeringVariables.vehicle = sharedPreferences.getString("vehicle","car");
         SteeringVariables.vibration = sharedPreferences.getString("vibration","0.4");
 
