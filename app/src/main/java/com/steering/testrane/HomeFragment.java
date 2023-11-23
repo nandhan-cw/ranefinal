@@ -130,7 +130,7 @@ public class HomeFragment extends Fragment {
     private Handler rotationHandler = new Handler();
     private static final long VIBRATION_DURATION = 100;
     boolean isRotationInProgress = false;
-    private static final long ROTATION_DELAY = 2000;
+    private static final long ROTATION_DELAY = 500;
     SharedPreferences sharedPreferences;
 
     @SuppressLint("MissingInflatedId")
@@ -188,6 +188,13 @@ public class HomeFragment extends Fragment {
         Handler handler = new Handler();
         anglelist = new ArrayList();
 
+
+        Log.d("checkvalue: ","steering status"+ SteeringVariables.steeringStatus);
+        Log.d("checkvalue: ","max angle"+ SteeringVariables.max_angle);
+        Log.d("checkvalue: ","auto steering"+ SteeringVariables.steeringauto);
+
+
+
 //        if(SteeringVariables.steeringauto.equals("on")){
 //            SteeringVariables.data5 = new byte[]{0x00,0x00};
 //        }
@@ -203,6 +210,8 @@ public class HomeFragment extends Fragment {
             floatValue = (float) (-decimalValue);
         }
         Log.d("check", "onCreateView: " + floatValue);
+
+        Log.d("checkcheck","1");
 
 //        touchAngle = 0f;
         initialTouchAngle = floatValue;
@@ -220,6 +229,14 @@ public class HomeFragment extends Fragment {
             bltbtnimg.setColorFilter(blueColor, mode);
         }
 
+        if (SteeringVariables.steeringStatus.equals("not_locked")) {
+            steeringwheel.setEnabled(true);
+
+            lockicon.setImageResource(R.drawable.lock2);
+        } else {
+            steeringwheel.setEnabled(false);
+            lockicon.setImageResource(R.drawable.lock1);
+        }
 
         Runnable rotateToZero = new Runnable() {
             @Override
@@ -228,39 +245,22 @@ public class HomeFragment extends Fragment {
                     currentRotationAngle -= ROTATION_STEP;
                     currentRotationAngle = Math.max(0, currentRotationAngle); // Ensure it doesn't go below 0
                     steeringwheel.setRotation(currentRotationAngle);
-                    handler.postDelayed(this, ROTATION_DELAY); // Delay for ROTATION_DELAY milliseconds
+//                    handler.postDelayed(this, 500);
                 } else {
                     isRotationInProgress = false; // Rotation completed, set the flag to false
                 }
             }
         };
 
-        Log.d(TAG, "checkforstatus: ");
-        if (SteeringVariables.steeringStatus == "not_locked") {
-//                    Toast.makeText(getActivity(), "if steering status", Toast.LENGTH_SHORT).show();
-            SteeringVariables.steeringStatus = "locked";
-            steeringwheel.setEnabled(false);
-//            Toast.makeText(getContext(), "Locked", Toast.LENGTH_SHORT).show();
-            lockicon.setImageResource(R.drawable.lock1);
-            saveSteeringStatus("locked");
-        } else {
-//                    Toast.makeText(getActivity(), "else  steering status", Toast.LENGTH_SHORT).show();
-            SteeringVariables.steeringStatus = "not_locked";
-            steeringwheel.setEnabled(true);
-            lockicon.setImageResource(R.drawable.lock2);
-//            Toast.makeText(getContext(), "Unlocked", Toast.LENGTH_SHORT).show();
-            saveSteeringStatus("not_locked");
-        }
+        Log.d("checkforstatus:", "checkforstatus: "+SteeringVariables.steeringStatus);
+
 
         lockicon.setOnClickListener(new View.OnClickListener() {
             @SuppressLint("ResourceAsColor")
             @Override
             public void onClick(View view) {
                 Log.d("steeringCheck", "check status: " + steeringStatus.toString());
-//                if(SteeringVariables.steeringauto.equals("offf")){
-//                    Toast.makeText(getContext(), "Cannot lock steering in auto steering mode", Toast.LENGTH_SHORT).show();
-//                }else {
-                if (SteeringVariables.steeringStatus == "not_locked") {
+                if (SteeringVariables.steeringStatus.equals("not_locked")) {
 //                    Toast.makeText(getActivity(), "if steering status", Toast.LENGTH_SHORT).show();
                     SteeringVariables.steeringStatus = "locked";
                     steeringwheel.setEnabled(false);
@@ -329,7 +329,7 @@ public class HomeFragment extends Fragment {
                 startActivityForResult(enableBtIntent, REQUEST_ENABLE_BLUETOOTH);
             }
         }
-
+        Log.d("checkcheck","9");
         rightkey.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -425,11 +425,12 @@ public class HomeFragment extends Fragment {
 // Inside MotionEvent.ACTION_MOVE case:
 
                     case MotionEvent.ACTION_MOVE:
-                        Log.d("checkinsert", "1");
-                        rotationAngleProcess();
-
-                        float vibrationIntensity = calculateVibrationIntensity(currentRotationAngle);
-                        startVibration(Float.parseFloat(SteeringVariables.vibration));
+//                        Log.d("checkinsert", "1");
+                        if(steeringStatus.equals("not_locked")) {
+                            rotationAngleProcess();
+                            float vibrationIntensity = calculateVibrationIntensity(currentRotationAngle);
+                            startVibration(Float.parseFloat(SteeringVariables.vibration));
+                        }
 
                         break;
 
@@ -438,9 +439,8 @@ public class HomeFragment extends Fragment {
                         SteeringVariables.release = true;
                         stopVibration();
                         angleSet.clear();
-                        if ("on".equals(SteeringVariables.steeringauto) && !isRotationInProgress && SteeringVariables.steeringStatus == "not_locked") {
+                        if ("on".equals(SteeringVariables.steeringauto) && !isRotationInProgress && SteeringVariables.steeringStatus.equals("not_locked")) {
 //                                SteeringVariables.data5 = new byte[]{0x00, 0x00};
-                            // Enable auto rotation and start rotation after ROTATION_DELAY milliseconds
                             SteeringVariables.home_thread_flag = false;
                             Log.d("checkvalue1", "ca: " + currentRotationAngle + " ta: " + touchAngle + " ita: " + initialTouchAngle);
                             Float tempangle = touchAngle;
@@ -569,7 +569,6 @@ public class HomeFragment extends Fragment {
                             touchAngle = 0f;
                             initialTouchAngle = 0f;
                             currentRotationAngle = 0f;
-
                             rotationHandler.postDelayed(new Runnable() {
                                 @Override
                                 public void run() {
@@ -582,7 +581,7 @@ public class HomeFragment extends Fragment {
                                     rotateSteeringWheel(0); // Rotate to 0 degrees
 //                                        touchAngle = 0f;
                                 }
-                            }, ROTATION_DELAY);
+                            }, 1000);
 
                             // Iterate through the list and send each value via Bluetooth
 
@@ -631,6 +630,10 @@ public class HomeFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+
+        touchAngle = 0f;
+        initialTouchAngle = 0f;
+        currentRotationAngle = 0f;
         ObjectAnimator rotateAnimator1 = ObjectAnimator.ofFloat(wheelL, "rotation", wheelL.getRotation(), Float.parseFloat("0"));
         rotateAnimator1.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
         rotateAnimator1.start();
@@ -638,14 +641,9 @@ public class HomeFragment extends Fragment {
         rotateAnimator2.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
         rotateAnimator2.start();
         rotateSteeringWheel(0);
-        touchAngle = 0f;
-        initialTouchAngle = 0f;
-        currentRotationAngle = 0f;
     }
 
     public void rotationAngleProcess() {
-        Log.d("checkinsert", "2");
-
         float rotationAngleDiff = touchAngle - initialTouchAngle;
         // Check if the rotation step is greater than the threshold
         if (Math.abs(rotationAngleDiff) >= TOUCH_SENSITIVITY_THRESHOLD) {
@@ -653,11 +651,11 @@ public class HomeFragment extends Fragment {
             currentRotationAngle += (rotationAngleDiff > 0) ? ROTATION_STEP : -ROTATION_STEP;
             // Ensure the rotation angle is within 360 degrees
             currentRotationAngle = Math.min(MAX_ROTATION_ANGLE, Math.max(-MAX_ROTATION_ANGLE, currentRotationAngle));
-
             // Add the angle to the uniqueAnglesSet (filtering out duplicates)
             uniqueAnglesSet.add(currentRotationAngle);
-
             // Update the steering wheel rotation
+            steeringwheel.setEnabled(true);
+
             steeringwheel.setRotation(currentRotationAngle);
             rotateLWheel(currentRotationAngle);
             // Update the angle TextView
@@ -671,7 +669,7 @@ public class HomeFragment extends Fragment {
 
             byte[] formattedData = formatAndConvertData(currentRotationAngle);
 
-            Log.d("checkinsert", "data1 " + SteeringVariables.data5[0] + "data2 " + SteeringVariables.data5[1] + "sign " + SteeringVariables.data3);
+//            Log.d("checkinsert", "data1 " + SteeringVariables.data5[0] + "data2 " + SteeringVariables.data5[1] + "sign " + SteeringVariables.data3);
 
             initialTouchAngle = touchAngle;
         }
@@ -704,7 +702,7 @@ public class HomeFragment extends Fragment {
 
     private void rotateSteeringWheel(float targetAngle) {
         ObjectAnimator rotateAnimator = ObjectAnimator.ofFloat(steeringwheel, "rotation", steeringwheel.getRotation(), targetAngle);
-        rotateAnimator.setDuration(ROTATION_DELAY); // Set the duration for the rotation animation (in milliseconds)
+        rotateAnimator.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
         rotateAnimator.start();
         touchAngle = 0f;
     }
@@ -929,6 +927,7 @@ public class HomeFragment extends Fragment {
     }
 
     private void rotateLWheel(float rotationAngle) {
+        Log.d("checkinsert", "rot "+wheelL.isEnabled());
         int divisor = calculateDivisor(MAX_ROTATION_ANGLE); // Your DIVISOR value
         float maxWheelRotation = MAX_ROTATION_ANGLE / divisor; // Your maxLeftWheelRotation value
 
@@ -1447,7 +1446,7 @@ public class HomeFragment extends Fragment {
 
     private void startSendData(){
 
-        if(SteeringVariables.steeringStatus == "locked"){
+        if(SteeringVariables.steeringStatus.equals("locked")){
             SteeringVariables.data6=0x01;
         }
         else{

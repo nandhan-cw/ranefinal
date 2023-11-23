@@ -398,6 +398,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     if(HomeFragment.inputStream!=null && HomeFragment.outputStream!=null && sendReceive!=null && SteeringVariables.max_angle!="180"){
                         sendData();
                     }
+
                     SteeringVariables.max_angle = "180";
 
                 }else{
@@ -405,6 +406,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
                     if(HomeFragment.inputStream!=null && HomeFragment.outputStream!=null && sendReceive!=null && SteeringVariables.max_angle!=ma){
                         sendData();
                     }
+
                     SteeringVariables.max_angle = ma;
 
                 }
