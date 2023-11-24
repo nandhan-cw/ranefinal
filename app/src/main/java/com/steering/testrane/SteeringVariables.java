@@ -53,4 +53,11 @@ public class SteeringVariables {
     public static byte endId1 = 0x0D;
     public static byte endId2 = 0x0A;
 
+    public static boolean ecu_value = true;
+
+    public static boolean motor_value = true;
+    public static boolean current_value = true;
+    public static boolean torque_value = true;
+    public static String angle_value="0";
+
 }

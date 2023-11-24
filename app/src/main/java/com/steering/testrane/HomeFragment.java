@@ -655,6 +655,7 @@ public class HomeFragment extends Fragment {
                     bltbtnimg.setColorFilter(ContextCompat.getColor(getContext(), R.color.grey_light), android.graphics.PorterDuff.Mode.MULTIPLY);
                     connectStatus.setText("Not Connected");
                     SteeringVariables.bluetooth = false;
+                    //handler - send
                     Toast.makeText(getContext(), "Disonnected", Toast.LENGTH_SHORT);
 
                 } else {

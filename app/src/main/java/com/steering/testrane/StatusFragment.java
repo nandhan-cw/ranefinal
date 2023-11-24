@@ -1,7 +1,12 @@
 package com.steering.testrane;
 
 import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
+import static com.steering.testrane.SteeringVariables.angle_value;
+import static com.steering.testrane.SteeringVariables.current_value;
+import static com.steering.testrane.SteeringVariables.ecu_value;
+import static com.steering.testrane.SteeringVariables.motor_value;
 import static com.steering.testrane.SteeringVariables.sendReceive;
+import static com.steering.testrane.SteeringVariables.torque_value;
 
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -98,6 +103,7 @@ public class StatusFragment extends Fragment {
 //            Toast.makeText(getContext(), "Connect to bluetooth", Toast.LENGTH_SHORT).show();
         }
 
+
 //        HomeFragment.sendReceive.write();
 
         return view;
@@ -127,6 +133,49 @@ public class StatusFragment extends Fragment {
 //        SteeringVariables.receivedSignal = sb.toString();
 //        return sb.toString();
 //    }
+
+    private void loadDataReceived(){
+        if(ecu_value){
+            estatus.setText("ok");
+            estatus.setTextColor(getResources().getColor(R.color.green));
+            elight.setImageResource(R.drawable.grnbtn);
+        }
+        else{
+            estatus.setText("err");
+            estatus.setTextColor(getResources().getColor(R.color.red));
+            elight.setImageResource(R.drawable.redbtn);
+        }
+        if(motor_value){
+            mstatus.setText("ok");
+            mstatus.setTextColor(getResources().getColor(R.color.green));
+            mlight.setImageResource(R.drawable.grnbtn);
+        }
+        else{
+            mstatus.setText("err");
+            mstatus.setTextColor(getResources().getColor(R.color.red));
+            mlight.setImageResource(R.drawable.redbtn);
+        }
+        if(torque_value){
+            tstatus.setText("ok");
+            tstatus.setTextColor(getResources().getColor(R.color.green));
+            tlight.setImageResource(R.drawable.grnbtn);
+        }
+        else{
+            tstatus.setText("err");
+            tstatus.setTextColor(getResources().getColor(R.color.red));
+            tlight.setImageResource(R.drawable.redbtn);
+        }
+        if(current_value){
+            cstatus.setText("ok");
+            cstatus.setTextColor(getResources().getColor(R.color.green));
+            clight.setImageResource(R.drawable.grnbtn);
+        }else{
+            cstatus.setText("err");
+            cstatus.setTextColor(getResources().getColor(R.color.red));
+            clight.setImageResource(R.drawable.redbtn);
+        }
+
+    }
 
     private void sendData(){
         while(sendReceive==null){
@@ -176,7 +225,6 @@ public class StatusFragment extends Fragment {
                 while (true) {
                     try {
                         bytes[0] = HomeFragment.inputStream.read(buffer);
-
                         handler.obtainMessage(STATE_MESSAGE_RECEIVED, bytes[0], -1, buffer).sendToTarget();
                     } catch (Exception e) {
                         Log.d("value", "ex: " + e);
@@ -193,6 +241,7 @@ public class StatusFragment extends Fragment {
     Handler handler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
+
             if (!isAdded()) {
                 // Fragment is not attached; avoid accessing resources
                 return false;
@@ -201,13 +250,15 @@ public class StatusFragment extends Fragment {
             switch (msg.what) {
                 case STATE_MESSAGE_RECEIVED:
                     byte[] readBuff = (byte[]) msg.obj;
+                    Log.d("check_value", "received " + readBuff[0] + " " + readBuff[1] + " " + readBuff[2] + " " + readBuff[3] + " " + readBuff[4] + " " + readBuff[5] + " " + readBuff[6] + " " + readBuff[7] + " " + readBuff[8] + " " + readBuff[9] + " " + readBuff[10] + " " + readBuff[11]+ " " + readBuff[12]+ " " + readBuff[13]);
+
                     byte[] frameId = HomeFragment.convertShortToBytes(SteeringVariables.frameIdRX);
-//                    Log.d("check_value","1: "+frameId[0]+" 2: "+frameId[1]);
 //                    readBuff[1]==frameId[0] && readBuff[2]==frameId[1] &&
-                    if(readBuff[0]==0x40 && readBuff[1]==frameId[0] && readBuff[2]==frameId[1] && readBuff[3]==0x08 && readBuff[13]==0x0A && readBuff[12]==0x0D) {
+                    if(readBuff[0]==0x40 && readBuff[1]==frameId[0] && readBuff[2]==frameId[1] && readBuff[13]==0x0A && readBuff[12]==0x0D) {
                         byte onedata = readBuff[4];
+                        Log.d("check_value",""+onedata + " "+readBuff[10]);
+
                         if (onedata == 0x02 && readBuff[9]==0x00 && readBuff[10]==0x00  && readBuff[11]==0x00) {
-                            Log.d("check_value", "received " + readBuff[0] + " " + readBuff[1] + " " + readBuff[2] + " " + readBuff[3] + " " + readBuff[4] + " " + readBuff[5] + " " + readBuff[6] + " " + readBuff[7] + " " + readBuff[8] + " " + readBuff[9] + " " + readBuff[10] + " " + readBuff[11]+ " " + readBuff[12]+ " " + readBuff[13]);
 
                             byte threedata = readBuff[6];
                             byte fourdata = readBuff[7];
@@ -216,6 +267,7 @@ public class StatusFragment extends Fragment {
                             if (HomeFragment.byteToHex(threedata).toLowerCase().equals("00")) {
                                 String temp = "" + decimalValue;
                                 astatus.setText(temp);
+                                angle_value=temp;
 //                                alight.setImageResource(R.drawable.grnbtn);
                             } else if (HomeFragment.byteToHex(threedata).toLowerCase().equals("01")) {
                                 String temp = "-" + decimalValue;
