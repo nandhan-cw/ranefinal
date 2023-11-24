@@ -66,7 +66,7 @@
                 android:id="@+id/alight"
                 android:layout_width="35dp"
                 android:layout_height="35dp"
-                android:src="@drawable/grnbtn"
+                android:src="@drawable/grebtn"
                 android:layout_weight="1"
                 />
             <TextView
@@ -78,7 +78,7 @@
                 android:padding="5dp"
                 android:background="@drawable/btn_outline"
                 android:textSize="18dp"
-                android:textColor="@color/green"
+                android:textColor="@color/grey"
                 android:textStyle="bold"
                 />
 
@@ -103,7 +103,7 @@
                 android:id="@+id/mlight"
                 android:layout_width="35dp"
                 android:layout_height="35dp"
-                android:src="@drawable/grnbtn"
+                android:src="@drawable/grebtn"
                 android:layout_weight="1"
                 />
             <TextView
@@ -115,7 +115,7 @@
                 android:padding="5dp"
                 android:background="@drawable/btn_outline"
                 android:textSize="18dp"
-                android:textColor="@color/green"
+                android:textColor="@color/grey"
                 android:textStyle="bold"
                 />
         </LinearLayout>
@@ -135,11 +135,12 @@
                 android:layout_weight="1"
                 android:textSize="18dp"
                 />
+
             <ImageView
                 android:id="@+id/tlight"
                 android:layout_width="35dp"
                 android:layout_height="35dp"
-                android:src="@drawable/grnbtn"
+                android:src="@drawable/grebtn"
                 android:layout_weight="1"
                 />
             <TextView
@@ -151,7 +152,7 @@
                 android:padding="5dp"
                 android:background="@drawable/btn_outline"
                 android:textSize="18dp"
-                android:textColor="@color/green"
+                android:textColor="@color/grey"
                 android:textStyle="bold"
                 />
         </LinearLayout>
@@ -175,7 +176,7 @@
                 android:id="@+id/elight"
                 android:layout_width="35dp"
                 android:layout_height="35dp"
-                android:src="@drawable/grnbtn"
+                android:src="@drawable/grebtn"
                 android:layout_weight="1"
                 />
             <TextView
@@ -187,7 +188,7 @@
                 android:padding="5dp"
                 android:background="@drawable/btn_outline"
                 android:textSize="18dp"
-                android:textColor="@color/green"
+                android:textColor="@color/grey"
                 android:textStyle="bold"
                 />
         </LinearLayout>
@@ -212,7 +213,7 @@
                 android:id="@+id/clight"
                 android:layout_width="35dp"
                 android:layout_height="35dp"
-                android:src="@drawable/grnbtn"
+                android:src="@drawable/grebtn"
                 android:layout_weight="1"
                 />
             <TextView
@@ -224,7 +225,7 @@
                 android:padding="5dp"
                 android:background="@drawable/btn_outline"
                 android:textSize="18dp"
-                android:textColor="@color/green"
+                android:textColor="@color/grey"
                 android:textStyle="bold"
                 />
         </LinearLayout>

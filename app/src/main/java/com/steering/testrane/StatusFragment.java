@@ -43,7 +43,7 @@ public class StatusFragment extends Fragment {
     FragmentManager fragmentManager;
     ImageView alight,mlight,tlight,elight,clight;
     static TextView astatus,mstatus,tstatus,estatus,cstatus;
-    static final int STATE_MESSAGE_RECEIVED = 5;
+    static final int STATE_MESSAGE_RECEIVED = 5,STATE_MESSAGE_NOT_RECEIVED=6;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -66,6 +66,9 @@ public class StatusFragment extends Fragment {
         tlight  = view.findViewById(R.id.tlight);
         elight = view.findViewById(R.id.elight);
         clight = view.findViewById(R.id.clight);
+
+//        loadDataReceived();
+
         steerControl.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -135,6 +138,7 @@ public class StatusFragment extends Fragment {
 //    }
 
     private void loadDataReceived(){
+        astatus.setText(angle_value);
         if(ecu_value){
             estatus.setText("ok");
             estatus.setTextColor(getResources().getColor(R.color.green));
@@ -193,7 +197,7 @@ public class StatusFragment extends Fragment {
                         Log.d("status","status while()");
                         try {
 
-                            byte[] frameId = HomeFragment.convertShortToBytes(SteeringVariables.frameIdRX);
+                            byte[] frameId = HomeFragment.convertShortToBytes(SteeringVariables.frameId1);
                             byte[] concatenatedArray02 = {SteeringVariables.startId,frameId[0],frameId[1], SteeringVariables.dlc,0x02,SteeringVariables.data2,SteeringVariables.data3,SteeringVariables.data5[0],SteeringVariables.data5[1],SteeringVariables.data6,SteeringVariables.data7,SteeringVariables.data8,SteeringVariables.endId1,SteeringVariables.endId2};
                             byte[] concatenatedArray03 = {SteeringVariables.startId,frameId[0],frameId[1], SteeringVariables.dlc,0x03,SteeringVariables.data2,SteeringVariables.data3,SteeringVariables.data5[0],SteeringVariables.data5[1],SteeringVariables.data6,SteeringVariables.data7,SteeringVariables.data8,SteeringVariables.endId1,SteeringVariables.endId2};
                             byte[] concatenatedArray04 = {SteeringVariables.startId,frameId[0],frameId[1], SteeringVariables.dlc,0x04,SteeringVariables.data2,SteeringVariables.data3,SteeringVariables.data5[0],SteeringVariables.data5[1],SteeringVariables.data6,SteeringVariables.data7,SteeringVariables.data8,SteeringVariables.endId1,SteeringVariables.endId2};
@@ -223,9 +227,12 @@ public class StatusFragment extends Fragment {
             @Override
             public void run() {
                 while (true) {
+                    Log.d("123","while");
                     try {
-                        bytes[0] = HomeFragment.inputStream.read(buffer);
-                        handler.obtainMessage(STATE_MESSAGE_RECEIVED, bytes[0], -1, buffer).sendToTarget();
+
+                            // Data is available, read it
+                            bytes[0] = HomeFragment.inputStream.read(buffer);
+                            handler.obtainMessage(STATE_MESSAGE_RECEIVED, bytes[0], -1, buffer).sendToTarget();
                     } catch (Exception e) {
                         Log.d("value", "ex: " + e);
                         e.printStackTrace();
@@ -250,7 +257,7 @@ public class StatusFragment extends Fragment {
             switch (msg.what) {
                 case STATE_MESSAGE_RECEIVED:
                     byte[] readBuff = (byte[]) msg.obj;
-                    Log.d("check_value", "received " + readBuff[0] + " " + readBuff[1] + " " + readBuff[2] + " " + readBuff[3] + " " + readBuff[4] + " " + readBuff[5] + " " + readBuff[6] + " " + readBuff[7] + " " + readBuff[8] + " " + readBuff[9] + " " + readBuff[10] + " " + readBuff[11]+ " " + readBuff[12]+ " " + readBuff[13]);
+                    Log.d("123", "received " + readBuff[0] + " " + readBuff[1] + " " + readBuff[2] + " " + readBuff[3] + " " + readBuff[4] + " " + readBuff[5] + " " + readBuff[6] + " " + readBuff[7] + " " + readBuff[8] + " " + readBuff[9] + " " + readBuff[10] + " " + readBuff[11]+ " " + readBuff[12]+ " " + readBuff[13]);
 
                     byte[] frameId = HomeFragment.convertShortToBytes(SteeringVariables.frameIdRX);
 //                    readBuff[1]==frameId[0] && readBuff[2]==frameId[1] &&
@@ -264,14 +271,18 @@ public class StatusFragment extends Fragment {
                             byte fourdata = readBuff[7];
                             byte fivedata = readBuff[8];
                             int decimalValue = (fourdata & 0xFF) << 8 | (fivedata & 0xFF);
-                            if (HomeFragment.byteToHex(threedata).toLowerCase().equals("00")) {
-                                String temp = "" + decimalValue;
+                            String temp=""
+;                            if (HomeFragment.byteToHex(threedata).toLowerCase().equals("00")) {
+                                temp = "" + decimalValue;
                                 astatus.setText(temp);
                                 angle_value=temp;
+                                SteeringVariables.angle_value = temp;
+
 //                                alight.setImageResource(R.drawable.grnbtn);
                             } else if (HomeFragment.byteToHex(threedata).toLowerCase().equals("01")) {
-                                String temp = "-" + decimalValue;
+                                temp = "-" + decimalValue;
                                 astatus.setText(temp);
+                                SteeringVariables.angle_value = temp;
 //                                alight.setImageResource(R.drawable.redbtn);
                             }
                         }
@@ -284,23 +295,26 @@ public class StatusFragment extends Fragment {
                                 mstatus.setText("ok");
                                 mstatus.setTextColor(getResources().getColor(R.color.green));
                                 mlight.setImageResource(R.drawable.grnbtn);
+                                motor_value = true;
                             } else if (HomeFragment.byteToHex(fourdata).toLowerCase().equals("7e")) {
                                 // change light to red in motor and ecu
                                 mstatus.setText("err");
                                 mstatus.setTextColor(getResources().getColor(R.color.red));
                                 mlight.setImageResource(R.drawable.redbtn);
+                                motor_value = false;
                             }
-
                             if (HomeFragment.byteToHex(fivedata).toLowerCase().equals("3e")) {
                                 // change light to green in motor and ecu
                                 estatus.setText("ok");
                                 estatus.setTextColor(getResources().getColor(R.color.green));
                                 elight.setImageResource(R.drawable.grnbtn);
+                                ecu_value = true;
                             } else if (HomeFragment.byteToHex(fivedata).toLowerCase().equals("7e")) {
                                 // change light to red in motor and ecu
                                 estatus.setText("err");
                                 estatus.setTextColor(getResources().getColor(R.color.red));
                                 elight.setImageResource(R.drawable.redbtn);
+                                ecu_value = false;
                             }
 
                         }
@@ -313,10 +327,12 @@ public class StatusFragment extends Fragment {
                                 tstatus.setText("ok");
                                 tstatus.setTextColor(getResources().getColor(R.color.green));
                                 tlight.setImageResource(R.drawable.grnbtn);
+                                torque_value = true;
                             } else if (HomeFragment.byteToHex(sevendata).toLowerCase().equals("7e")) {
                                 tstatus.setText("err");
                                 tstatus.setTextColor(getResources().getColor(R.color.red));
                                 tlight.setImageResource(R.drawable.redbtn);
+                                torque_value = false;
                             }
 
                         }
@@ -328,15 +344,24 @@ public class StatusFragment extends Fragment {
                                 cstatus.setText("ok");
                                 cstatus.setTextColor(getResources().getColor(R.color.green));
                                 clight.setImageResource(R.drawable.grnbtn);
+                                current_value = true;
                             } else if (HomeFragment.byteToHex(fivedata).toLowerCase().equals("7e")) {
                                 cstatus.setText("err");
                                 cstatus.setTextColor(getResources().getColor(R.color.red));
                                 clight.setImageResource(R.drawable.redbtn);
+                                current_value = false;
                             }
                         }
                     }
-
                     break;
+
+                case STATE_MESSAGE_NOT_RECEIVED:
+                    estatus.setText("nan");
+                    astatus.setText("nan");
+                    tstatus.setText("nan");
+                    mstatus.setText("nan");
+                    cstatus.setText("nan");
+
             }
             return true;
         }
