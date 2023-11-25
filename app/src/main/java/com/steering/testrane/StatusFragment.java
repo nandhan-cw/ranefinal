@@ -4,6 +4,9 @@ import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 import static com.steering.testrane.SteeringVariables.angle_value;
 import static com.steering.testrane.SteeringVariables.current_value;
 import static com.steering.testrane.SteeringVariables.ecu_value;
+import static com.steering.testrane.SteeringVariables.getCurrentFragment;
+import static com.steering.testrane.SteeringVariables.listOfByteArrays;
+import static com.steering.testrane.SteeringVariables.listOfStringReceive;
 import static com.steering.testrane.SteeringVariables.motor_value;
 import static com.steering.testrane.SteeringVariables.sendReceive;
 import static com.steering.testrane.SteeringVariables.torque_value;
@@ -51,7 +54,9 @@ public class StatusFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_status, container, false);
         steerControl = view.findViewById(R.id.steercontrol);
 
-        SteeringVariables.home_thread_flag = false;
+        SteeringVariables.currentFragment = "status";
+
+//        SteeringVariables.home_thread_flag = false;
         SteeringVariables.status_thread_flag = true;
 
         Log.d("check","flag "+SteeringVariables.status_thread_flag);
@@ -67,8 +72,125 @@ public class StatusFragment extends Fragment {
         elight = view.findViewById(R.id.elight);
         clight = view.findViewById(R.id.clight);
 
-//        loadDataReceived();
+        /// load status variables
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                while (true){
+//                    try {
+//                        String curr_value = listOfStringReceive.get(0);
+//                        String one = curr_value.substring(0, 2);
+//                        String two = curr_value.substring(2, 4);
+//                        String three = curr_value.substring(4,6);
+//                        String four = curr_value.substring(6,8);
+//                        String five = curr_value.substring(8,10);
+//                        String six = curr_value.substring(10,12);
+//                        String seven = curr_value.substring(12,14);
+//                        String eight = curr_value.substring(14,16);
+//                        String nine = curr_value.substring(16,18);
+//                        String ten = curr_value.substring(18,20);
+//                        String eleven = curr_value.substring(20,22);
+//                        String twelve = curr_value.substring(22,24);
+//                        String thirteen = curr_value.substring(24,26);
+//                        String fourteen = curr_value.substring(26,28);
+//                        if(one.equals("40") && thirteen.equals("0d") && fourteen.equals("0a")){
+//                            if (five.equals("02")) {
+//                                byte fourdata = (byte) Integer.parseInt(eight, 16);
+//                                byte fivedata = (byte) Integer.parseInt(nine, 16);
+//                                int decimalValue = (fourdata & 0xFF) << 8 | (fivedata & 0xFF);
+//                                String temp="";
+//                                if (seven.equals("00")) {
+//                                    temp = "" + decimalValue;
+//                                    astatus.setText(temp);
+//                                    SteeringVariables.angle_value = temp;
+//                                }
+//                                else if (seven.equals("01")) {
+//                                    temp = "-" + decimalValue;
+//                                    astatus.setText(temp);
+//                                    SteeringVariables.angle_value = temp;
+//                                }
+//                            }
+//                            if (five.equals("03")) {
+//                                if (eight.toLowerCase().equals("3e")) {
+//                                    // change light to green in motor and ecu
+//                                    mstatus.setText("ok");
+//                                    mstatus.setTextColor(getResources().getColor(R.color.green));
+//                                    mlight.setImageResource(R.drawable.grnbtn);
+//                                    motor_value = true;
+//                                } else if (eight.toLowerCase().equals("7e")) {
+//                                    // change light to red in motor and ecu
+//                                    mstatus.setText("err");
+//                                    mstatus.setTextColor(getResources().getColor(R.color.red));
+//                                    mlight.setImageResource(R.drawable.redbtn);
+//                                    motor_value = false;
+//                                }
+//                                if (nine.toLowerCase().equals("3e")) {
+//                                    // change light to green in motor and ecu
+//                                    estatus.setText("ok");
+//                                    estatus.setTextColor(getResources().getColor(R.color.green));
+//                                    elight.setImageResource(R.drawable.grnbtn);
+//                                    ecu_value = true;
+//                                } else if (nine.toLowerCase().equals("7e")) {
+//                                    // change light to red in motor and ecu
+//                                    estatus.setText("err");
+//                                    estatus.setTextColor(getResources().getColor(R.color.red));
+//                                    elight.setImageResource(R.drawable.redbtn);
+//                                    ecu_value = false;
+//                                }
+//
+//                            }
+//                            if (five.equals("04")) {
+//                                Log.d("shibhu",""+five+" "+eleven);
+//                                if (eleven.equals("3e")) {
+//                                    tstatus.setText("ok");
+//                                    tstatus.setTextColor(getResources().getColor(R.color.green));
+//                                    tlight.setImageResource(R.drawable.grnbtn);
+//                                    torque_value = true;
+//                                } else if (eleven.equals("7e")) {
+//                                    tstatus.setText("err");
+//                                    tstatus.setTextColor(getResources().getColor(R.color.red));
+//                                    tlight.setImageResource(R.drawable.redbtn);
+//                                    torque_value = false;
+//                                }
+//                            }
+//                            if (five.equals("05")) {
+//                                Log.d("shibhu",""+five+" "+eleven+" "+twelve);
+//                                byte curent1 = (byte) Integer.parseInt(eleven, 16);
+//                                byte curent2 = (byte) Integer.parseInt(twelve, 16);
+//                                int decimalValue = (curent1 & 0xFF) << 8 | (curent2 & 0xFF);
+//                                cstatus.setText(""+decimalValue);
+//                            }
+//
+//                        }
+//                        listOfStringReceive.remove(0);
+//                        Thread.sleep(100);
+//                    }
+//                    catch (Exception e){
+//                        Log.d("Error","Can't load data");
+//                    }
+//                }
+//            }
+//        }).start();
 
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    try {
+                        if(SteeringVariables.currentFragment.equals("status")) {
+                            loadDataReceived();
+                        }
+                        else{
+                            break;
+                        }
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        }).start();
         steerControl.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -99,8 +221,8 @@ public class StatusFragment extends Fragment {
 //        }
 //
         if(HomeFragment.inputStream!=null && HomeFragment.outputStream!=null && sendReceive!=null){
-            sendData();
-            readData();
+//            sendData();
+//            readData();
         }
         else{
 //            Toast.makeText(getContext(), "Connect to bluetooth", Toast.LENGTH_SHORT).show();
@@ -137,8 +259,12 @@ public class StatusFragment extends Fragment {
 //        return sb.toString();
 //    }
 
-    private void loadDataReceived(){
+    public void loadDataReceived(){
+
+        Log.d("shibhu",""+angle_value+" "+current_value+ " "+ecu_value+" "+motor_value+" "+torque_value);
+
         astatus.setText(angle_value);
+        cstatus.setText(current_value);
         if(ecu_value){
             estatus.setText("ok");
             estatus.setTextColor(getResources().getColor(R.color.green));
@@ -168,15 +294,6 @@ public class StatusFragment extends Fragment {
             tstatus.setText("err");
             tstatus.setTextColor(getResources().getColor(R.color.red));
             tlight.setImageResource(R.drawable.redbtn);
-        }
-        if(current_value){
-            cstatus.setText("ok");
-            cstatus.setTextColor(getResources().getColor(R.color.green));
-            clight.setImageResource(R.drawable.grnbtn);
-        }else{
-            cstatus.setText("err");
-            cstatus.setTextColor(getResources().getColor(R.color.red));
-            clight.setImageResource(R.drawable.redbtn);
         }
 
     }
@@ -220,152 +337,6 @@ public class StatusFragment extends Fragment {
     }
 
 
-    private void readData(){
-        byte[] buffer = new byte[1024];
-        final int[] bytes = new int[1];
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (true) {
-                    Log.d("123","while");
-                    try {
-
-                            // Data is available, read it
-                            bytes[0] = HomeFragment.inputStream.read(buffer);
-                            handler.obtainMessage(STATE_MESSAGE_RECEIVED, bytes[0], -1, buffer).sendToTarget();
-                    } catch (Exception e) {
-                        Log.d("value", "ex: " + e);
-                        e.printStackTrace();
-                    }
-                }
-
-            }
-        }).start();
-
-    }
-
-
-    Handler handler = new Handler(new Handler.Callback() {
-        @Override
-        public boolean handleMessage(Message msg) {
-
-            if (!isAdded()) {
-                // Fragment is not attached; avoid accessing resources
-                return false;
-            }
-//            64 4 14 8 4 126 0 0 0 0 62 0 13 10
-            switch (msg.what) {
-                case STATE_MESSAGE_RECEIVED:
-                    byte[] readBuff = (byte[]) msg.obj;
-                    Log.d("123", "received " + readBuff[0] + " " + readBuff[1] + " " + readBuff[2] + " " + readBuff[3] + " " + readBuff[4] + " " + readBuff[5] + " " + readBuff[6] + " " + readBuff[7] + " " + readBuff[8] + " " + readBuff[9] + " " + readBuff[10] + " " + readBuff[11]+ " " + readBuff[12]+ " " + readBuff[13]);
-
-                    byte[] frameId = HomeFragment.convertShortToBytes(SteeringVariables.frameIdRX);
-//                    readBuff[1]==frameId[0] && readBuff[2]==frameId[1] &&
-                    if(readBuff[0]==0x40 && readBuff[1]==frameId[0] && readBuff[2]==frameId[1] && readBuff[13]==0x0A && readBuff[12]==0x0D) {
-                        byte onedata = readBuff[4];
-                        Log.d("check_value",""+onedata + " "+readBuff[10]);
-
-                        if (onedata == 0x02 && readBuff[9]==0x00 && readBuff[10]==0x00  && readBuff[11]==0x00) {
-
-                            byte threedata = readBuff[6];
-                            byte fourdata = readBuff[7];
-                            byte fivedata = readBuff[8];
-                            int decimalValue = (fourdata & 0xFF) << 8 | (fivedata & 0xFF);
-                            String temp=""
-;                            if (HomeFragment.byteToHex(threedata).toLowerCase().equals("00")) {
-                                temp = "" + decimalValue;
-                                astatus.setText(temp);
-                                angle_value=temp;
-                                SteeringVariables.angle_value = temp;
-
-//                                alight.setImageResource(R.drawable.grnbtn);
-                            } else if (HomeFragment.byteToHex(threedata).toLowerCase().equals("01")) {
-                                temp = "-" + decimalValue;
-                                astatus.setText(temp);
-                                SteeringVariables.angle_value = temp;
-//                                alight.setImageResource(R.drawable.redbtn);
-                            }
-                        }
-
-                        if (onedata == 0x03) {
-                            byte fourdata = readBuff[7];
-                            byte fivedata = readBuff[8];
-                            if (HomeFragment.byteToHex(fourdata).toLowerCase().equals("3e")) {
-                                // change light to green in motor and ecu
-                                mstatus.setText("ok");
-                                mstatus.setTextColor(getResources().getColor(R.color.green));
-                                mlight.setImageResource(R.drawable.grnbtn);
-                                motor_value = true;
-                            } else if (HomeFragment.byteToHex(fourdata).toLowerCase().equals("7e")) {
-                                // change light to red in motor and ecu
-                                mstatus.setText("err");
-                                mstatus.setTextColor(getResources().getColor(R.color.red));
-                                mlight.setImageResource(R.drawable.redbtn);
-                                motor_value = false;
-                            }
-                            if (HomeFragment.byteToHex(fivedata).toLowerCase().equals("3e")) {
-                                // change light to green in motor and ecu
-                                estatus.setText("ok");
-                                estatus.setTextColor(getResources().getColor(R.color.green));
-                                elight.setImageResource(R.drawable.grnbtn);
-                                ecu_value = true;
-                            } else if (HomeFragment.byteToHex(fivedata).toLowerCase().equals("7e")) {
-                                // change light to red in motor and ecu
-                                estatus.setText("err");
-                                estatus.setTextColor(getResources().getColor(R.color.red));
-                                elight.setImageResource(R.drawable.redbtn);
-                                ecu_value = false;
-                            }
-
-                        }
-
-                        if (onedata == 0x04) {
-                            byte sevendata = readBuff[10];
-                            byte fourdata = readBuff[7];
-                            byte fivedata = readBuff[8];
-                            if (HomeFragment.byteToHex(sevendata).toLowerCase().equals("3e")) {
-                                tstatus.setText("ok");
-                                tstatus.setTextColor(getResources().getColor(R.color.green));
-                                tlight.setImageResource(R.drawable.grnbtn);
-                                torque_value = true;
-                            } else if (HomeFragment.byteToHex(sevendata).toLowerCase().equals("7e")) {
-                                tstatus.setText("err");
-                                tstatus.setTextColor(getResources().getColor(R.color.red));
-                                tlight.setImageResource(R.drawable.redbtn);
-                                torque_value = false;
-                            }
-
-                        }
-
-                        if (onedata == 0x05) {
-                            byte fourdata = readBuff[7];
-                            byte fivedata = readBuff[8];
-                            if (HomeFragment.byteToHex(fivedata).toLowerCase().equals("3e")) {
-                                cstatus.setText("ok");
-                                cstatus.setTextColor(getResources().getColor(R.color.green));
-                                clight.setImageResource(R.drawable.grnbtn);
-                                current_value = true;
-                            } else if (HomeFragment.byteToHex(fivedata).toLowerCase().equals("7e")) {
-                                cstatus.setText("err");
-                                cstatus.setTextColor(getResources().getColor(R.color.red));
-                                clight.setImageResource(R.drawable.redbtn);
-                                current_value = false;
-                            }
-                        }
-                    }
-                    break;
-
-                case STATE_MESSAGE_NOT_RECEIVED:
-                    estatus.setText("nan");
-                    astatus.setText("nan");
-                    tstatus.setText("nan");
-                    mstatus.setText("nan");
-                    cstatus.setText("nan");
-
-            }
-            return true;
-        }
-    });
 
 
 }

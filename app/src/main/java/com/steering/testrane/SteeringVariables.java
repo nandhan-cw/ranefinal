@@ -3,8 +3,10 @@ package com.steering.testrane;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 
+import java.util.ArrayList;
+
 public class SteeringVariables {
-    private static String currentFragment = "";
+    public static String currentFragment = "";
     public static BluetoothDevice device;
     public static BluetoothAdapter bluetoothAdapter;
     public static HomeFragment.SendReceive sendReceive;
@@ -53,11 +55,14 @@ public class SteeringVariables {
     public static byte endId1 = 0x0D;
     public static byte endId2 = 0x0A;
 
-    public static boolean ecu_value;
+    public static boolean ecu_value = true;
 
     public static boolean motor_value = true;
-    public static boolean current_value = true;
+    public static String current_value = "0";
     public static boolean torque_value = true;
     public static String angle_value="0";
+    public static ArrayList<byte[]> listOfByteArrays = new ArrayList<>();
+
+    public static ArrayList<String> listOfStringReceive = new ArrayList<>();
 
 }
