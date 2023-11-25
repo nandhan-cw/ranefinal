@@ -236,6 +236,32 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     @Override
+    protected void onResume() {
+        super.onResume();
+        SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFS,MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+//        editor.putString("ecu_value", String.valueOf(SteeringVariables.ecu_value));
+//        editor.putString("motor_value", String.valueOf(SteeringVariables.motor_value));
+//        Log.d("current_value","1 "+SteeringVariables.current_value);
+//        editor.putString("torque_value", String.valueOf(SteeringVariables.torque_value));
+//        editor.putString("angle_value",SteeringVariables.angle_value);
+        editor.apply();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFS,MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+//        editor.putString("ecu_value", String.valueOf(SteeringVariables.ecu_value));
+//        editor.putString("motor_value", String.valueOf(SteeringVariables.motor_value));
+//        Log.d("current_value","1 "+SteeringVariables.current_value);
+//        editor.putString("torque_value", String.valueOf(SteeringVariables.torque_value));
+//        editor.putString("angle_value",SteeringVariables.angle_value);
+        editor.apply();
+    }
+
+    @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         if(item.getItemId() == R.id.home){
             getSupportFragmentManager()
@@ -436,6 +462,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         dialog.show();
     }
 
+
     public void saveData(){
         SharedPreferences sharedPreferences = getSharedPreferences(SHARED_PREFS,MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -452,8 +479,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         editor.putString("rx", rx.getText().toString());
 
         editor.putString("vibration", SteeringVariables.vibration); // Save the slider value
-
-
 //        editor.putString("rx", rx.getText().toString());
         Log.d("sv", "saveData: "+sharedPreferences.getString("rx",""));
         Log.d("sv","save "+String.valueOf(SteeringVariables.frameIdRX));
@@ -526,15 +551,17 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         SteeringVariables.steeringauto = sharedPreferences.getString("steering_auto","off"); // Load steering auto state
         SteeringVariables.steeringStatus = sharedPreferences.getString("steeringstatus","not_locked");
         Log.d("checksteer","2 "+SteeringVariables.steeringStatus);
+//        SteeringVariables.ecu_value = Boolean.parseBoolean(sharedPreferences.getString("ecu_value", "true"));
+//        SteeringVariables.motor_value = Boolean.parseBoolean(sharedPreferences.getString("motor_value", "true"));
+//        SteeringVariables.torque_value = Boolean.parseBoolean(sharedPreferences.getString("torque_value", "true"));
+//        SteeringVariables.current_value = sharedPreferences.getString("current_value", "0");
+//        SteeringVariables.angle_value = sharedPreferences.getString("angle_value", "0");
 
         SteeringVariables.vehicle = sharedPreferences.getString("vehicle","car");
         SteeringVariables.vibration = sharedPreferences.getString("vibration","0.4");
 
-//        Toast.makeText(getApplicationContext(), ""+SteeringVariables.max_angle, Toast.LENGTH_SHORT).show();
         Log.d("maxangle","load: "+sharedPreferences.getString("max_angle", "")+" sv: "+SteeringVariables.max_angle);
 
-        // Set text using SteeringVariables.max_angle
-        // Check toggle button based on SteeringVariables.steeringauto value
         LockSteeringFragment fragment = (LockSteeringFragment) getSupportFragmentManager().findFragmentById(R.id.lock);
 
         String hexString = sharedPreferences.getString("tx","70E");
@@ -575,10 +602,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             e.printStackTrace();
         }
     }
-
-
-
-
 
 
 }

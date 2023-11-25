@@ -9,6 +9,7 @@ import static com.steering.testrane.SteeringVariables.ecu_value;
 import static com.steering.testrane.SteeringVariables.listOfByteArrays;
 import static com.steering.testrane.SteeringVariables.listOfStringReceive;
 import static com.steering.testrane.SteeringVariables.motor_value;
+import static com.steering.testrane.SteeringVariables.r_value;
 import static com.steering.testrane.SteeringVariables.steeringStatus;
 import static com.steering.testrane.SteeringVariables.torque_value;
 
@@ -142,6 +143,8 @@ public class HomeFragment extends Fragment {
     private static final long ROTATION_DELAY = 2000;
     SharedPreferences sharedPreferences;
     private static float initial_current1=0f;
+    byte[] datainitial = SteeringVariables.data5; // 2-byte array representing a 16-bit integer
+    float floatValue;
 
     @SuppressLint("MissingInflatedId")
     @Override
@@ -151,49 +154,10 @@ public class HomeFragment extends Fragment {
         steeringwheel = view.findViewById(R.id.steeringwheel);
 
         SteeringVariables.currentFragment = "home";
-
-//        sharedPreferences = getContext().getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
-//        SteeringVariables.loginstatus = sharedPreferences.getString("loginstatus", "off");
-//        SteeringVariables.vehicle = sharedPreferences.getString("vehicle","car");
-//
-//        if(sharedPreferences.contains("steering_auto")){
-//            SteeringVariables.steeringauto=sharedPreferences.getString("steering_auto","off");
-//        }
-//        else{
-//            SteeringVariables.steeringauto="off";
-//        }
-//        if(sharedPreferences.contains("max_angle")){
-//            SteeringVariables.max_angle=sharedPreferences.getString("max_angle","180");
-//        }else{
-//            SteeringVariables.max_angle="180";
-//        }
-//        if(sharedPreferences.contains("vehicle")){
-//            SteeringVariables.vehicle=sharedPreferences.getString("vehicle","car");
-//        }else{
-//            SteeringVariables.vehicle="car";
-//        }
-//        if(sharedPreferences.contains("tx") && sharedPreferences.contains("rx")) {
-//            String hexString = sharedPreferences.getString("tx", "70E");
-//            int decimalValue = Integer.parseInt(hexString, 16);
-//            short shortValue = (short) decimalValue;
-//            SteeringVariables.frameId1 = shortValue;
-//
-//            String hexString1 = sharedPreferences.getString("rx", "71E");
-//            int decimalValue1 = Integer.parseInt(hexString1, 16);
-//            short shortValue1 = (short) decimalValue1;
-//            SteeringVariables.frameIdRX = shortValue1;
-//        }
-//        else{
-//            SteeringVariables.frameId1 = 0x70E;
-//            SteeringVariables.frameIdRX = 0x71E;
-//        }
-
-//        if(SteeringVariables.bluetooth) {
         SteeringVariables.home_thread_flag = true;
         SteeringVariables.status_thread_flag = false;
-//        }
 
-        Log.d("check", "flag " + SteeringVariables.home_thread_flag);
+        setAngleDialog();
 
         angletext = view.findViewById(R.id.angletext);
         connectStatus = view.findViewById(R.id.connectStatus);
@@ -213,7 +177,7 @@ public class HomeFragment extends Fragment {
 
 
         final AudioManager audioManager = (AudioManager) getActivity().getSystemService(Context.AUDIO_SERVICE);
-        Log.d("dataa", SteeringVariables.max_angle);
+        Log.d("dataa", angle_value);
         MAX_ROTATION_ANGLE = Float.parseFloat(SteeringVariables.max_angle);
         sharedPreferences = getActivity().getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE);
         SteeringVariables.steeringStatus = sharedPreferences.getString("steeringstatus", "not_locked");
@@ -236,6 +200,17 @@ public class HomeFragment extends Fragment {
         Handler handler = new Handler();
         anglelist = new ArrayList();
 
+
+        short shortValue = (short) ((datainitial[0] & 0xFF) << 8 | (datainitial[1] & 0xFF));
+        int decimalValue = (datainitial[0] & 0xFF) << 8 | (datainitial[1] & 0xFF);
+        if (SteeringVariables.data3 == 0x00) {
+            floatValue = (float) decimalValue;
+        } else {
+            floatValue = (float) (-decimalValue);
+        }
+        initialTouchAngle = floatValue;
+        currentRotationAngle = floatValue;
+
 //        if(SteeringVariables.steeringauto.equals("on")){
 //            SteeringVariables.data5 = new byte[]{0x00,0x00};
 //        }
@@ -243,23 +218,23 @@ public class HomeFragment extends Fragment {
         byte[] datainitial = SteeringVariables.data5; // 2-byte array representing a 16-bit integer
         float floatValue;
         // Convert little-endian 16-bit integer to float manually
-//        short shortValue = (short) ((datainitial[0] & 0xFF) << 8 | (datainitial[1] & 0xFF));
-        int decimalValue = (datainitial[0] & 0xFF) << 8 | (datainitial[1] & 0xFF);
-        if (SteeringVariables.data3 == 0x00) {
-            floatValue = (float) decimalValue;
-        } else {
-            floatValue = (float) (-decimalValue);
-        }
-        Log.d("check", "onCreateView: " + floatValue);
+
+//        byte[] datainitial = (byte) Integer.parseInt(byteStr, 16);
+//        int decimalValue = (datainitial[0] & 0xFF) << 8 | (datainitial[1] & 0xFF);
+//        if (SteeringVariables.data3 == 0x00) {
+//            floatValue = (float) decimalValue;
+//        } else {
+//            floatValue = (float) (-decimalValue);
+//        }
+//        Log.d("check", "onCreateView: " + floatValue);
 
 //        touchAngle = 0f;
-        initialTouchAngle = floatValue;
-        currentRotationAngle = floatValue;
+
 
         rotationAngleProcess();
         vehicleChange();
 
-        rotateLWheel(floatValue);
+//        rotateLWheel(floatValue);
         Log.d("checksteer","3 "+SteeringVariables.steeringStatus);
         if (SteeringVariables.steeringStatus.equals("not_locked")) {
             steeringwheel.setEnabled(true);
@@ -278,6 +253,7 @@ public class HomeFragment extends Fragment {
             bltbtnimg.setColorFilter(blueColor, mode);
         }
 
+//        angle_value
 
         Runnable rotateToZero = new Runnable() {
             @Override
@@ -515,122 +491,6 @@ public class HomeFragment extends Fragment {
                                         }
                                     }
                                     initial_current1 = 0f;
-//                                    new Thread(new Runnable() {
-//                                        @Override
-//                                        public void run() {
-//
-//                                            // Calculate the new rotation angle
-//                                            SteeringVariables.home_thread_flag = false;
-//                                            Log.d("checkvalue1", "ca: " + tempangle);
-//                                            if (finalTemoca < 0) {
-//                                                for (float i = finalTemoca; i <= 0; i += 1) {
-//                                                    /// updating data5
-////                                                    byte[] tempbyte = formatAndConvertData(i);
-//                                                    if(!uniqueAnglesSetSendVal.contains(i)){
-//                                                        uniqueAnglesSetSendVal.add(i);
-//                                                    }
-//                                                    Log.d("value123", "minus " + SteeringVariables.data5[0] + SteeringVariables.data5[1]);
-//                                                    try {
-//                                                        byte[] frameId = convertShortToBytes(SteeringVariables.frameId1);
-//                                                        byte[] hexData1 = {SteeringVariables.startId};
-//                                                        byte[] hexData2 = {SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3};
-//                                                        byte[] angleData = SteeringVariables.data5;
-//                                                        //                                            Log.d("data","3: "+SteeringVariables.data5[0]+" 4: "+SteeringVariables.data5[1]);
-//
-//                                                        byte[] hexData3 = {SteeringVariables.data6, SteeringVariables.data7, SteeringVariables.data8, SteeringVariables.endId1, SteeringVariables.endId2};
-//
-//                                                        int totalLength = frameId.length + hexData1.length + hexData2.length + angleData.length + hexData3.length;
-//                                                        byte[] concatenatedArray = new byte[totalLength];
-//                                                        int offset = 0;
-//
-//                                                        System.arraycopy(hexData1, 0, concatenatedArray, offset, hexData1.length);
-//                                                        offset += hexData1.length;
-//
-//                                                        System.arraycopy(frameId, 0, concatenatedArray, offset, frameId.length);
-//                                                        offset += frameId.length;
-//
-//                                                        System.arraycopy(hexData2, 0, concatenatedArray, offset, hexData2.length);
-//                                                        offset += hexData2.length;
-//
-////                                                    Log.d("value", "value sent 1 " + SteeringVariables.data5[0] + "value sent 2 : " + SteeringVariables.data5[1]);
-//
-//                                                        System.arraycopy(SteeringVariables.data5, 0, concatenatedArray, offset, SteeringVariables.data5.length);
-//                                                        offset += SteeringVariables.data5.length;
-//
-//                                                        System.arraycopy(hexData3, 0, concatenatedArray, offset, hexData3.length);
-//                                                        if (SteeringVariables.sendReceive != null) {
-////                                                            SteeringVariables.sendReceive.write(concatenatedArray);
-//                                                        }
-//
-//                                                        Thread.sleep(200); // Delay for 1 second (1000 milliseconds)
-//                                                    } catch (InterruptedException e) {
-//                                                        e.printStackTrace();
-//                                                    }
-//
-//                                                    Log.d(TAG, "run: " + anglelist.toString());
-//                                                }
-//                                            }
-//                                            else {
-//                                                for (float i = finalTemoca; i >= 0; i -= 1) {
-//                                                    if(!uniqueAnglesSetSendVal.contains(i)){
-//                                                        uniqueAnglesSetSendVal.add(i);
-//                                                    }
-//                                                    /// updating data5
-////                                                    byte[] tempbyte = formatAndConvertData(i);
-//                                                    Log.d("value123", "plus " + SteeringVariables.data5[0] + SteeringVariables.data5[1]);
-//                                                    try {
-//                                                        SteeringVariables.data3 = 0x01;
-//                                                        if (i >= 0) {
-//                                                            SteeringVariables.data3 = 0x00;
-//                                                        }
-//                                                        byte[] frameId = convertShortToBytes(SteeringVariables.frameId1);
-//                                                        byte[] hexData1 = {SteeringVariables.startId};
-//                                                        byte[] hexData2 = {SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3};
-//                                                        byte[] angleData = SteeringVariables.data5;
-//                                                        //                                            Log.d("data","3: "+SteeringVariables.data5[0]+" 4: "+SteeringVariables.data5[1]);
-//
-//                                                        byte[] hexData3 = {SteeringVariables.data6, SteeringVariables.data7, SteeringVariables.data8, SteeringVariables.endId1, SteeringVariables.endId2};
-//
-//                                                        int totalLength = frameId.length + hexData1.length + hexData2.length + angleData.length + hexData3.length;
-//                                                        byte[] concatenatedArray = new byte[totalLength];
-//                                                        int offset = 0;
-//
-//                                                        System.arraycopy(hexData1, 0, concatenatedArray, offset, hexData1.length);
-//                                                        offset += hexData1.length;
-//
-//                                                        System.arraycopy(frameId, 0, concatenatedArray, offset, frameId.length);
-//                                                        offset += frameId.length;
-//
-//                                                        System.arraycopy(hexData2, 0, concatenatedArray, offset, hexData2.length);
-//                                                        offset += hexData2.length;
-//
-////                                                    Log.d("value", "value sent 1 " + SteeringVariables.data5[0] + "value sent 2 : " + SteeringVariables.data5[1]);
-//
-//                                                        System.arraycopy(SteeringVariables.data5, 0, concatenatedArray, offset, SteeringVariables.data5.length);
-//                                                        offset += SteeringVariables.data5.length;
-//
-//                                                        System.arraycopy(hexData3, 0, concatenatedArray, offset, hexData3.length);
-//                                                        if (SteeringVariables.sendReceive != null) {
-////                                                            SteeringVariables.sendReceive.write(concatenatedArray);
-//                                                        }
-//                                                        Thread.sleep(200); // Delay for 1 second (1000 milliseconds)
-//                                                    } catch (InterruptedException e) {
-//                                                        e.printStackTrace();
-//                                                    }
-//
-//                                                    Log.d(TAG, "run: " + anglelist.toString());
-//                                                }
-//                                            }
-//
-//                                            initial_current1 = currentRotationAngle;
-//
-//                                            Log.d("value123", "after " + SteeringVariables.data5[0] + SteeringVariables.data5[1]);
-//
-//
-//                                            SteeringVariables.home_thread_flag = true;
-//                                        }
-//
-//                                    }).start();
 
                                     touchAngle = 0f;
                                     initialTouchAngle = 0f;
@@ -762,6 +622,39 @@ public class HomeFragment extends Fragment {
             }
         }).start();
 
+
+//        new Thread(new Runnable() {
+//            @Override
+//            public void run() {
+//                while (true) {
+//                    Log.d("angleshibhu", "" + SteeringVariables.setangle+" "+r_value);
+//                    if (r_value) {
+//                        if (SteeringVariables.setangle.equals("zero")) {
+//                            ObjectAnimator rotateAnimator = ObjectAnimator.ofFloat(wheelL, "rotation", wheelL.getRotation(), Float.parseFloat("0"));
+//                            rotateAnimator.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
+//                            rotateAnimator.start();
+//                            ObjectAnimator rotateAnimator2 = ObjectAnimator.ofFloat(wheelR, "rotation", wheelR.getRotation(), Float.parseFloat("0"));
+//                            rotateAnimator2.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
+//                            rotateAnimator2.start();
+//                            rotateSteeringWheel(0);
+//                        } else if (SteeringVariables.setangle.equals("angle")) {
+//
+//                            float angle = Float.parseFloat(angle_value);
+//                            Log.d("angleshibhu", "" + angle);
+//                            ObjectAnimator rotateAnimator = ObjectAnimator.ofFloat(wheelL, "rotation", angle, Float.parseFloat("0"));
+//                            rotateAnimator.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
+//                            rotateAnimator.start();
+//                            ObjectAnimator rotateAnimator2 = ObjectAnimator.ofFloat(wheelR, "rotation", angle, Float.parseFloat("0"));
+//                            rotateAnimator2.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
+//                            rotateAnimator2.start();
+//                            rotateSteeringWheel(angle);
+//                        }
+//                        break;
+//                    }
+//                }
+//            }
+//        }).start();
+
         bltbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -815,29 +708,38 @@ public class HomeFragment extends Fragment {
             currentRotationAngle += (rotationAngleDiff > 0) ? ROTATION_STEP : -ROTATION_STEP;
             // Ensure the rotation angle is within 360 degrees
             currentRotationAngle = Math.min(MAX_ROTATION_ANGLE, Math.max(-MAX_ROTATION_ANGLE, currentRotationAngle));
-
             steeringwheel.setRotation(currentRotationAngle);
             rotateLWheel(currentRotationAngle);
             // Update the angle TextView
             angletext.setText("Angles: " + uniqueAnglesSet.toString());
-
-            // Prepare the data to be sent over Bluetooth
-            StringBuilder angleData = new StringBuilder();
-//            for (Float angle : uniqueAnglesSet) {
-//                angleData.append(angle).append(","); // Separate angles with commas
-//            }
-//            Log.d("12333",""+initial_current1+" "+currentRotationAngle);
-
-            if(currentRotationAngle<0){
-                for(float i=initial_current1; i>=currentRotationAngle;i--){
+            if(currentRotationAngle<=0){
+                if(initial_current1>currentRotationAngle) {
+                    for (float i = initial_current1; i >= currentRotationAngle; i--) {
 //                    Log.d("unique: ",""+i+" "+uniqueAnglesSetSendVal.contains(i));
                         uniqueAnglesSetSendVal.add(i);
+                        Log.d("checkrotation", "" + i);
+                    }
+                }
+                else if(initial_current1<currentRotationAngle) {
+                    for (float i = initial_current1; i <= currentRotationAngle; i++) {
+//                    Log.d("unique: ",""+i+" "+uniqueAnglesSetSendVal.contains(i));
+                        uniqueAnglesSetSendVal.add(i);
+                        Log.d("checkrotation", "" + i);
+                    }
                 }
             }
-            else{
-                for(float i=initial_current1; i<=currentRotationAngle;i++){
-//                    Log.d("unique: ",""+i+" "+uniqueAnglesSetSendVal.contains(i));
+            else if(currentRotationAngle>=0){
+                if(initial_current1<currentRotationAngle) {
+                    for (float i = initial_current1; i <= currentRotationAngle; i++) {
                         uniqueAnglesSetSendVal.add(i);
+                        Log.d("checkrotation", "" + i);
+                    }
+                }
+                else if(initial_current1>currentRotationAngle) {
+                    for (float i = initial_current1; i >= currentRotationAngle; i--) {
+                        uniqueAnglesSetSendVal.add(i);
+                        Log.d("checkrotation", "" + i);
+                    }
                 }
             }
 //            byte[] formattedData = formatAndConvertData(currentRotationAngle);
@@ -920,25 +822,21 @@ public class HomeFragment extends Fragment {
 
     private byte[] formatAndConvertData(float angle) {
         int angleValue = (int) angle;
-        Log.d("unique", "1 : " + angle);
         if (angleValue < 0) {
             angleValue = Math.abs(angleValue);
             SteeringVariables.data3 = 0x01;
         } else {
             SteeringVariables.data3 = 0x00;
         }
-        Log.d("value11", "angle2 : " + angleValue);
 
         String hexAngle = Integer.toHexString(angleValue);
 
-        Log.d("value11", "hexstring : " + hexAngle);
 
         if (angleValue <= 255) {
             byte[] byteArray = new byte[2];
             byteArray[0] = 0x00;
             byteArray[1] = (byte) Integer.parseInt(hexAngle, 16);
 //            SteeringVariables.data5 = byteArray;
-            Log.d("unique", "data1 : " + byteArray[0] + " data2: " + byteArray[1]);
             return byteArray;
         }
         else {
@@ -946,7 +844,6 @@ public class HomeFragment extends Fragment {
             byte[] doubleByteArray = new byte[2];
             doubleByteArray[0] = (byte) Integer.parseInt(hexAngle.substring(0, 2), 16);
             doubleByteArray[1] = (byte) Integer.parseInt(hexAngle.substring(2), 16);
-            Log.d("unique", "data1 : " + doubleByteArray[0] + " data2: " + doubleByteArray[1]);
 //            SteeringVariables.data5 = doubleByteArray;
             return doubleByteArray;
         }
@@ -1011,6 +908,36 @@ public class HomeFragment extends Fragment {
         exitDialog.show();
     }
 
+    public void setAngleDialog() {
+        Dialog exitDialog = new Dialog(requireContext());
+        exitDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        exitDialog.setCancelable(true);
+        exitDialog.setContentView(R.layout.defaultanglepopup);
+        Button confirmButton = exitDialog.findViewById(R.id.confirmButton);
+        exitDialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
+        Button cancelButton = exitDialog.findViewById(R.id.cancelButton);
+
+        confirmButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SteeringVariables.setangle = "angle";
+//                initialTouchAngle =
+                exitDialog.dismiss();
+            }
+        });
+
+        cancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SteeringVariables.setangle = "zero";
+                exitDialog.dismiss();
+
+            }
+        });
+
+        // Show the exit confirmation dialog
+        exitDialog.show();
+    }
 
     public void blueToothListPopup(Context context) {
         final Dialog dialog = new Dialog(context);
@@ -1194,7 +1121,6 @@ public class HomeFragment extends Fragment {
                     Log.d("Bluetooth","cancelDiscovery() not working");
                 }
                 socket = device.createRfcommSocketToServiceRecord(MY_UUID);
-                Log.e("11111111111111111111111111", "socket conf");
                 inputStream = socket.getInputStream();
                 outputStream = socket.getOutputStream();
             } catch (IOException e) {
@@ -1283,7 +1209,6 @@ public class HomeFragment extends Fragment {
                 serverSocket = SteeringVariables.bluetoothAdapter.listenUsingRfcommWithServiceRecord(APP_NAME, UUID.fromString("00001101-0000-1000-8000-00805F9B34FB"));
             } catch (IOException e) {
                 e.printStackTrace();
-                Log.d("11111111111111111111111111","uuid ");
             }
         }
 
@@ -1344,14 +1269,13 @@ public class HomeFragment extends Fragment {
                     bytes = inputStream.read(buffer);
                     //                    Log.d("Reading","trying to get value "+bytes);
                     if (bytes != -1) {
+                        r_value = true;
                         byte[] receivedDataBytes = Arrays.copyOf(buffer, bytes);
                         String receivedDataHex = byteArrayToHexString(receivedDataBytes).toLowerCase();
-                        Log.d("123456",value+" "+listOfStringReceive.size());
                         if(value.startsWith("40") && value.endsWith("0d0a") && value.length()==28){
                             if(listOfStringReceive.size()<0){
                                 listOfStringReceive.clear();
                             }
-                            Log.d("123456",value+" "+listOfStringReceive.size());
                             listOfStringReceive.add(value);
                             value = "";
                         }
@@ -1359,9 +1283,9 @@ public class HomeFragment extends Fragment {
                             value = value+receivedDataHex;
                         }
 
-
-                        // Process the received data (in hexadecimal format)
-                        // Implement your logic with receivedDataHex
+                    }
+                    else{
+                        r_value = false;
                     }
                     handler.obtainMessage(STATE_MESSAGE_RECEIVED, bytes, -1, buffer).sendToTarget();
 //                    Log.d("Reading","Sent to handler");
@@ -1424,15 +1348,29 @@ public class HomeFragment extends Fragment {
                     break;
                 case STATE_CONNECTED:
                     connectStatus.setText("Connected");
-
                     SteeringVariables.bluetooth=true;
-                    ObjectAnimator rotateAnimator = ObjectAnimator.ofFloat(wheelL, "rotation", wheelL.getRotation(), Float.parseFloat("0"));
-                    rotateAnimator.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
-                    rotateAnimator.start();
-                    ObjectAnimator rotateAnimator2 = ObjectAnimator.ofFloat(wheelR, "rotation", wheelR.getRotation(), Float.parseFloat("0"));
-                    rotateAnimator2.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
-                    rotateAnimator2.start();
-                    rotateSteeringWheel(0);
+//                    if(SteeringVariables.setangle.equals("zero")) {
+//                        ObjectAnimator rotateAnimator = ObjectAnimator.ofFloat(wheelL, "rotation", wheelL.getRotation(), Float.parseFloat("0"));
+//                        rotateAnimator.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
+//                        rotateAnimator.start();
+//                        ObjectAnimator rotateAnimator2 = ObjectAnimator.ofFloat(wheelR, "rotation", wheelR.getRotation(), Float.parseFloat("0"));
+//                        rotateAnimator2.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
+//                        rotateAnimator2.start();
+//                        rotateSteeringWheel(0);
+//                    }
+//                    else if(SteeringVariables.setangle.equals("angle")){
+//
+//                        float angle = Float.parseFloat(angle_value);
+//                        Log.d("angleshibhu",""+angle);
+//                        ObjectAnimator rotateAnimator = ObjectAnimator.ofFloat(wheelL, "rotation", angle, Float.parseFloat("0"));
+//                        rotateAnimator.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
+//                        rotateAnimator.start();
+//                        ObjectAnimator rotateAnimator2 = ObjectAnimator.ofFloat(wheelR, "rotation", angle, Float.parseFloat("0"));
+//                        rotateAnimator2.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
+//                        rotateAnimator2.start();
+//                        rotateSteeringWheel(angle);
+//                    }
+
 
                     while(SteeringVariables.sendReceive==null){
                         if (SteeringVariables.sendReceive != null) {
@@ -1445,125 +1383,44 @@ public class HomeFragment extends Fragment {
                     }
 
                     if (SteeringVariables.sendReceive != null) {
-//                        new Thread(new Runnable() {
-//                            @Override
-//                            public void run() {
-////                                Log.d("data","2: "+SteeringVariables.data5[0]);
-//                                while (true) {
-////                                    Log.d("status","home while()");
-//                                    try {
-//                                        byte[] hexData1 = {SteeringVariables.startId};
-//                                        byte[] frameIdRx = convertShortToBytes(SteeringVariables.frameIdRX);
-//                                        byte[] hexData2 = {SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3};
-//                                        byte[] angleData = SteeringVariables.data5;
-////                                        Log.d("data","2: "+SteeringVariables.data5[0]+" 4: "+SteeringVariables.data5[1]);
-//                                        byte[] hexData3 = {SteeringVariables.data6, SteeringVariables.data7, SteeringVariables.data8, SteeringVariables.endId1, SteeringVariables.endId2};
-//
-//                                        int totalLength = frameIdRx.length + hexData1.length + hexData2.length + angleData.length + hexData3.length;
-//
-//                                        ///////// rx byte[]
-//
-//                                        byte[] concatenatedArrayRX = new byte[totalLength];
-//
-//                                        int offsetrx = 0;
-//
-//                                        System.arraycopy(hexData1, 0, concatenatedArrayRX, offsetrx, hexData1.length);
-//                                        offsetrx += hexData1.length;
-//
-//                                        System.arraycopy(frameIdRx, 0, concatenatedArrayRX, offsetrx, frameIdRx.length);
-//                                        offsetrx += frameIdRx.length;
-//
-//                                        System.arraycopy(hexData2, 0, concatenatedArrayRX, offsetrx, hexData2.length);
-//                                        offsetrx += hexData2.length;
-//
-//                                        System.arraycopy(SteeringVariables.data5, 0, concatenatedArrayRX, offsetrx, SteeringVariables.data5.length);
-//                                        offsetrx += SteeringVariables.data5.length;
-//
-//                                        System.arraycopy(hexData3, 0, concatenatedArrayRX, offsetrx, hexData3.length);
-//                                        if(SteeringVariables.home_thread_flag==true && SteeringVariables.bluetooth){
-//                                            SteeringVariables.sendReceive.write(concatenatedArrayRX);
-//                                        }
-////                                        byte[] testval = {0x40,0x07,0x1E,0x08,0x1,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x0D,0x0A};
-//                                        Thread.sleep(500); // Delay for 1 second (1000 milliseconds)
-//                                    } catch (InterruptedException e) {
-//                                        e.printStackTrace();
-//                                    }
-//                                }
-//                            }
-//                        }).start();
+
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
+                                byte[] curent_send_val = new byte[0];
                                 while (true) {
                                     try {
-                                        byte[] curent_send_val;
-                                        if(uniqueAnglesSetSendVal.size()>0) {
+
+                                        if (uniqueAnglesSetSendVal.size() > 0) {
                                             float cur_val = uniqueAnglesSetSendVal.get(0);
-                                            Log.d("uniquechk", " 2: " + cur_val);
                                             curent_send_val = formatAndConvertData(cur_val);
-                                             Log.d("unique1"," "+curent_send_val[0]+" "+curent_send_val[1]);
                                             uniqueAnglesSetSendVal.remove(0);
-                                            byte[] frameId = convertShortToBytes(SteeringVariables.frameId1);
-                                            byte[] concatenatedArray = {SteeringVariables.startId, frameId[0], frameId[1], SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3, curent_send_val[0], curent_send_val[1], SteeringVariables.data6, SteeringVariables.data7, SteeringVariables.data8, SteeringVariables.endId1, SteeringVariables.endId2};
-                                            if (SteeringVariables.home_thread_flag && SteeringVariables.bluetooth) {
-                                                SteeringVariables.sendReceive.write(concatenatedArray);
-                                                Log.d("unique1", "1 : " + curent_send_val[0] + " 2: " + curent_send_val[1]);
-                                            }
+//                                            byte[] frameId = convertShortToBytes(SteeringVariables.frameId1);
+//                                            byte[] concatenatedArray = {SteeringVariables.startId, frameId[0], frameId[1], SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3, curent_send_val[0], curent_send_val[1], SteeringVariables.data6, SteeringVariables.data7, SteeringVariables.data8, SteeringVariables.endId1, SteeringVariables.endId2};
+//                                            SteeringVariables.sendReceive.write(concatenatedArray);
+//                                            Thread.sleep(10);
                                         }
                                         else{
-//                                            curent_send_val = formatAndConvertData(0.0f);
+//                                            curent_send_val = curent_send_val;
+//                                            Log.d("shibhuu",""+currentRotationAngle);
+                                            curent_send_val = formatAndConvertData(currentRotationAngle);
                                         }
+
+                                        byte[] frameId = convertShortToBytes(SteeringVariables.frameId1);
+                                        byte[] concatenatedArray = {SteeringVariables.startId, frameId[0], frameId[1], SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3, curent_send_val[0], curent_send_val[1], SteeringVariables.data6, SteeringVariables.data7, SteeringVariables.data8, SteeringVariables.endId1, SteeringVariables.endId2};
+                                        SteeringVariables.sendReceive.write(concatenatedArray);
                                         Thread.sleep(20);
                                     }
                                         catch (Exception e){
                                         Log.d("SendValue",""+e);
                                     }
-//                                    try {
-//                                        byte[] hexData1 = {SteeringVariables.startId};
-//                                        byte[] frameId = convertShortToBytes(SteeringVariables.frameId1);
-//                                        byte[] hexData2 = {SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3};
-//                                        byte[] angleData = {curent_send_val[0],curent_send_val[1]};
-//
-//                                        byte[] hexData3 = {SteeringVariables.data6, SteeringVariables.data7, SteeringVariables.data8, SteeringVariables.endId1, SteeringVariables.endId2};
-//
-//                                        int totalLength = frameId.length + hexData1.length + hexData2.length + angleData.length + hexData3.length;
-//                                        byte[] concatenatedArray = new byte[totalLength];
-//                                        int offset = 0;
-//
-//                                        System.arraycopy(hexData1, 0, concatenatedArray, offset, hexData1.length);
-//                                        offset += hexData1.length;
-//
-//                                        System.arraycopy(frameId, 0, concatenatedArray, offset, frameId.length);
-//                                        offset += frameId.length;
-//
-//                                        System.arraycopy(hexData2, 0, concatenatedArray, offset, hexData2.length);
-//                                        offset += hexData2.length;
-//
-////                                            Log.d("value", "value sent 1 " + SteeringVariables.data5[0] + "value sent 2 : " + SteeringVariables.data5[1]);
-//
-//                                        System.arraycopy(angleData, 0, concatenatedArray, offset, angleData.length);
-//                                        offset += angleData.length;
-//                                        Log.d("datachecksend"," 4: "+curent_send_val[0]+" 4: "+curent_send_val[1]);
-//
-//                                        System.arraycopy(hexData3, 0, concatenatedArray, offset, hexData3.length);
-//                                        if(SteeringVariables.home_thread_flag==true && SteeringVariables.bluetooth){
-//                                            SteeringVariables.sendReceive.write(concatenatedArray);
-//                                        }
-//
-////                                        byte[] testval = {0x40,0x07,0x1E,0x08,0x1,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x0D,0x0A};
-//                                        Thread.sleep(200); // Delay for 0.1 second (1000 milliseconds)
-//                                    }
-//                                    catch (InterruptedException e) {
-//                                        e.printStackTrace();
-//                                    }
-//                                    Log.d("status","home while()");
+
 
                                 }
                             }
                         }).start();
                     }
                     else {
-                        Log.d("11111111111111111111111111","sendrec5: "+SteeringVariables.sendReceive);
 //                            Toast.makeText(getContext(), "hellloooooo", Toast.LENGTH_SHORT).show();
                         // Handle the case where Bluetooth connection or message sending is not available
                     }
@@ -1578,11 +1435,9 @@ public class HomeFragment extends Fragment {
                 case STATE_MESSAGE_RECEIVED:
                     byte[] readBuff = (byte[]) msg.obj;
 
+
                     listOfByteArrays.add(readBuff);
-                    Log.d("123",""+new String(readBuff,0,msg.arg1));
-//                    Log.d("123", "received " + readBuff[0] + " " + readBuff[1] + " " + readBuff[2] + " " + readBuff[3] + " " + readBuff[4] + " " + readBuff[5] + " " + readBuff[6] + " " + readBuff[7] + " " + readBuff[8] + " " + readBuff[9] + " " + readBuff[10] + " " + readBuff[11]+ " " + readBuff[12]+ " " + readBuff[13]);                    String tempMsg = new String(readBuff, 0, msg.arg1);
                     String hexString = bytesToHex(readBuff);
-//                    Log.d("value","Received msg "+byteToHex(SteeringVariables.RxSignal));
                     if(byteToHex(SteeringVariables.RxSignal).toLowerCase().equals("3e")){
                         SteeringVariables.bluetoothstatus = true;
                         write.setText("POS");
@@ -1599,7 +1454,6 @@ public class HomeFragment extends Fragment {
 
     public static String bytesToHex(byte[] bytes) {
         StringBuilder sb = new StringBuilder(bytes.length * 2);
-//        Log.d("value","length: "+bytes.length);
         SteeringVariables.RxSignal = bytes[5];
         for(byte b: bytes) {
             if (sb.length() <= 26) {
@@ -1628,190 +1482,6 @@ public class HomeFragment extends Fragment {
         return (angle < 0) ? angle + 360 : angle;
     }
 
-//    private void readDataInput(){
-//        byte[] buffer = new byte[1024];
-//        final int[] bytes = new int[1];
-//
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                while (true) {
-//                    try {
-//                        // Data is available, read it
-//                        bytes[0] = inputStream.read(buffer);
-//                        SteeringVariables.listOfByteArrays.add(buffer);
-//                        Log.d("getvalue",buffer+"");
-//                        Thread.sleep(500);
-////                        byte[] readBuff = buffer;
-////                        byte[] frameId = HomeFragment.convertShortToBytes(SteeringVariables.frameIdRX);
-//////                        if (readBuff[0] == 0x40 && readBuff[1] == frameId[0] && readBuff[2] == frameId[1] && readBuff[13] == 0x0A && readBuff[12] == 0x0D) {
-////                            byte onedata = readBuff[4];
-////                            Log.d("check_value", "" + onedata + " " + readBuff[10]);
-//////                            if (onedata == 0x02) {
-//////                                byte threedata = readBuff[6];
-//////                                byte fourdata = readBuff[7];
-//////                                byte fivedata = readBuff[8];
-//////                                int decimalValue = (fourdata & 0xFF) << 8 | (fivedata & 0xFF);
-//////                                String temp = "";
-//////                                if (HomeFragment.byteToHex(threedata).toLowerCase().equals("00")) {
-//////                                    temp = "" + decimalValue;
-//////                                    angle_value = temp;
-//////                                    Log.d("checkmessage","Load data received11: "+angle_value+" "+current_value+" "+ecu_value+" "+motor_value+" "+torque_value);
-//////                                } else if (HomeFragment.byteToHex(threedata).toLowerCase().equals("01")) {
-//////                                    temp = "-" + decimalValue;
-//////                                    angle_value = temp;
-//////                                    Log.d("checkmessage","Load data received12: "+angle_value+" "+current_value+" "+ecu_value+" "+motor_value+" "+torque_value);
-//////
-//////                                }
-//////
-//////                            }
-//////                            if (onedata == 0x03) {
-//////                                byte fourdata = readBuff[7];
-//////                                byte fivedata = readBuff[8];
-//////                                if (HomeFragment.byteToHex(fourdata).toLowerCase().equals("3e")) {
-//////                                    motor_value = true;
-//////                                    Log.d("checkmessage","Load data received2: "+angle_value+" "+current_value+" "+ecu_value+" "+motor_value+" "+torque_value);
-//////
-//////                                } else if (HomeFragment.byteToHex(fourdata).toLowerCase().equals("7e")) {
-//////                                    motor_value = false;
-//////                                    Log.d("checkmessage","Load data received3: "+angle_value+" "+current_value+" "+ecu_value+" "+motor_value+" "+torque_value);
-//////
-//////                                }
-//////                                if (HomeFragment.byteToHex(fivedata).toLowerCase().equals("3e")) {
-//////                                    ecu_value = true;
-//////                                    Log.d("checkmessage","Load data received4: "+angle_value+" "+current_value+" "+ecu_value+" "+motor_value+" "+torque_value);
-//////
-////////                                        ecu_value = true;
-//////                                } else if (HomeFragment.byteToHex(fivedata).toLowerCase().equals("7e")) {
-//////                                    ecu_value = false;
-//////                                    Log.d("checkmessage","Load data received5: "+angle_value+" "+current_value+" "+ecu_value+" "+motor_value+" "+torque_value);
-//////
-//////                                }
-//////                            }
-//////                            if (onedata == 0x04) {
-//////                                byte sevendata = readBuff[10];
-//////
-//////                                if (HomeFragment.byteToHex(sevendata).toLowerCase().equals("3e")) {
-//////                                    torque_value = true;
-//////                                    Log.d("checkmessage","Load data received6: "+sevendata+" "+angle_value+" "+current_value+" "+ecu_value+" "+motor_value+" "+torque_value);
-//////                                } else if (HomeFragment.byteToHex(sevendata).toLowerCase().equals("7e")) {
-//////                                    torque_value = false;
-//////                                    Log.d("checkmessage","Load data received7: "+angle_value+" "+current_value+" "+ecu_value+" "+motor_value+" "+torque_value);
-//////
-//////                                }
-//////                            }
-//////                            if (onedata == 0x05) {
-//////                                byte sevendata = readBuff[10];
-//////                                byte eightdata = readBuff[11];
-//////                                int decimalValue = (sevendata & 0xFF) << 8 | (eightdata & 0xFF);
-////////                                    if(!current_value.equals(decimalValue+"")){
-//////                                current_value = decimalValue + "";
-//////                                Log.d("checkmessage","Load data received8: "+angle_value+" "+current_value+" "+ecu_value+" "+motor_value+" "+torque_value);
-//////                            }
-//////                        }
-////
-////
-//////                        Log.d("checkmessage","Read Data Input :"+buffer);
-//////                        handler.obtainMessage(STATE_MESSAGE_RECEIVED, bytes[0], -1, buffer).sendToTarget();
-//                    } catch (Exception e) {
-//                        Log.d("value", "ex: " + e);
-//                        e.printStackTrace();
-//                    }
-//                }
-//
-//            }
-//        }).start();
-//
-//    }
 
-    public void loadDataInput(){
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    while(true) {
-                        if (listOfByteArrays.size() > 0) {
-                            byte[] readBuff = listOfByteArrays.get(0);
-                            byte[] frameId = HomeFragment.convertShortToBytes(SteeringVariables.frameIdRX);
-                            if (readBuff[0] == 0x40 && readBuff[1] == frameId[0] && readBuff[2] == frameId[1] && readBuff[13] == 0x0A && readBuff[12] == 0x0D) {
-                                byte onedata = readBuff[4];
-                                Log.d("check_value", "" + onedata + " " + readBuff[10]);
-                                if (onedata == 0x02 && readBuff[9] == 0x00) {
-                                    byte threedata = readBuff[6];
-                                    byte fourdata = readBuff[7];
-                                    byte fivedata = readBuff[8];
-                                    int decimalValue = (fourdata & 0xFF) << 8 | (fivedata & 0xFF);
-                                    String temp = "";
-                                    if (HomeFragment.byteToHex(threedata).toLowerCase().equals("00")) {
-                                        temp = "" + decimalValue;
-                                        angle_value = temp;
-                                        Log.d("checkmessage","Load data received11: "+angle_value+" "+current_value+" "+ecu_value+" "+motor_value+" "+torque_value);
-
-                                    } else if (HomeFragment.byteToHex(threedata).toLowerCase().equals("01")) {
-                                        temp = "-" + decimalValue;
-                                        angle_value = temp;
-                                        Log.d("checkmessage","Load data received12: "+angle_value+" "+current_value+" "+ecu_value+" "+motor_value+" "+torque_value);
-
-                                    }
-
-                                }
-                                if (onedata == 0x03) {
-                                    byte fourdata = readBuff[7];
-                                    byte fivedata = readBuff[8];
-                                    if (HomeFragment.byteToHex(fourdata).toLowerCase().equals("3e")) {
-                                        motor_value = true;
-                                        Log.d("checkmessage","Load data received2: "+angle_value+" "+current_value+" "+ecu_value+" "+motor_value+" "+torque_value);
-
-                                    } else if (HomeFragment.byteToHex(fourdata).toLowerCase().equals("7e")) {
-                                        motor_value = false;
-                                        Log.d("checkmessage","Load data received3: "+angle_value+" "+current_value+" "+ecu_value+" "+motor_value+" "+torque_value);
-
-                                    }
-                                    if (HomeFragment.byteToHex(fivedata).toLowerCase().equals("3e")) {
-                                        ecu_value = true;
-                                        Log.d("checkmessage","Load data received4: "+angle_value+" "+current_value+" "+ecu_value+" "+motor_value+" "+torque_value);
-
-//                                        ecu_value = true;
-                                    } else if (HomeFragment.byteToHex(fivedata).toLowerCase().equals("7e")) {
-                                        ecu_value = false;
-                                        Log.d("checkmessage","Load data received5: "+angle_value+" "+current_value+" "+ecu_value+" "+motor_value+" "+torque_value);
-
-                                    }
-                                }
-                                if (onedata == 0x04) {
-                                    byte sevendata = readBuff[10];
-
-                                    if (HomeFragment.byteToHex(sevendata).toLowerCase().equals("3e")) {
-                                        torque_value = true;
-                                        Log.d("checkmessage","Load data received6: "+sevendata+" "+angle_value+" "+current_value+" "+ecu_value+" "+motor_value+" "+torque_value);
-                                    } else if (HomeFragment.byteToHex(sevendata).toLowerCase().equals("7e")) {
-                                        torque_value = false;
-                                        Log.d("checkmessage","Load data received7: "+angle_value+" "+current_value+" "+ecu_value+" "+motor_value+" "+torque_value);
-
-                                    }
-                                }
-                                if (onedata == 0x05) {
-                                    byte sevendata = readBuff[10];
-                                    byte eightdata = readBuff[11];
-                                    int decimalValue = (sevendata & 0xFF) << 8 | (eightdata & 0xFF);
-//                                    if(!current_value.equals(decimalValue+"")){
-                                        current_value = decimalValue + "";
-                                        Log.d("checkmessage","Load data received8: "+angle_value+" "+current_value+" "+ecu_value+" "+motor_value+" "+torque_value);
-
-//                                    }
-                                }
-                            }
-                            listOfByteArrays.remove(0);
-                        }
-//                        Thread.sleep(20);
-                    }
-                }
-                catch (Exception e){
-                    Log.d("Error","Can't read");
-                }
-            }
-        }).start();
-
-    }
 
 }

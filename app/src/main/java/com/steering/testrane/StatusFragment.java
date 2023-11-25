@@ -8,6 +8,7 @@ import static com.steering.testrane.SteeringVariables.getCurrentFragment;
 import static com.steering.testrane.SteeringVariables.listOfByteArrays;
 import static com.steering.testrane.SteeringVariables.listOfStringReceive;
 import static com.steering.testrane.SteeringVariables.motor_value;
+import static com.steering.testrane.SteeringVariables.r_value;
 import static com.steering.testrane.SteeringVariables.sendReceive;
 import static com.steering.testrane.SteeringVariables.torque_value;
 
@@ -45,7 +46,7 @@ public class StatusFragment extends Fragment {
     Button steerControl;
     FragmentManager fragmentManager;
     ImageView alight,mlight,tlight,elight,clight;
-    static TextView astatus,mstatus,tstatus,estatus,cstatus;
+    static TextView astatus,mstatus,tstatus,estatus,cstatus,rstatus;
     static final int STATE_MESSAGE_RECEIVED = 5,STATE_MESSAGE_NOT_RECEIVED=6;
 
     @Override
@@ -71,7 +72,13 @@ public class StatusFragment extends Fragment {
         tlight  = view.findViewById(R.id.tlight);
         elight = view.findViewById(R.id.elight);
         clight = view.findViewById(R.id.clight);
+        rstatus = view.findViewById(R.id.rstatus);
 
+        if(r_value){
+            rstatus.setText("receiving");
+        }else{
+            rstatus.setText("not receiving");
+        }
         /// load status variables
 //        new Thread(new Runnable() {
 //            @Override
@@ -180,6 +187,7 @@ public class StatusFragment extends Fragment {
                     try {
                         if(SteeringVariables.currentFragment.equals("status")) {
                             loadDataReceived();
+
                         }
                         else{
                             break;
@@ -229,7 +237,6 @@ public class StatusFragment extends Fragment {
         }
 
 
-//        HomeFragment.sendReceive.write();
 
         return view;
     }
@@ -270,7 +277,8 @@ public class StatusFragment extends Fragment {
             estatus.setTextColor(getResources().getColor(R.color.green));
             elight.setImageResource(R.drawable.grnbtn);
         }
-        else{
+        else if(ecu_value==false){
+
             estatus.setText("err");
             estatus.setTextColor(getResources().getColor(R.color.red));
             elight.setImageResource(R.drawable.redbtn);
@@ -280,7 +288,7 @@ public class StatusFragment extends Fragment {
             mstatus.setTextColor(getResources().getColor(R.color.green));
             mlight.setImageResource(R.drawable.grnbtn);
         }
-        else{
+        else if(motor_value==false){
             mstatus.setText("err");
             mstatus.setTextColor(getResources().getColor(R.color.red));
             mlight.setImageResource(R.drawable.redbtn);
@@ -290,53 +298,18 @@ public class StatusFragment extends Fragment {
             tstatus.setTextColor(getResources().getColor(R.color.green));
             tlight.setImageResource(R.drawable.grnbtn);
         }
-        else{
+        else if(torque_value==false){
             tstatus.setText("err");
             tstatus.setTextColor(getResources().getColor(R.color.red));
             tlight.setImageResource(R.drawable.redbtn);
         }
 
-    }
-
-    private void sendData(){
-        while(sendReceive==null){
-            Log.d("status","sendreceive no");
-            if(sendReceive!=null) break;
+        if(r_value){
+            rstatus.setText("receiving");
+        }else{
+            rstatus.setText("not receiving");
         }
-        if(sendReceive!=null){
-            Log.d("status","sendreceive yes");
 
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    Log.d("status","status run()");
-                    while (true && SteeringVariables.status_thread_flag==true) {
-                        Log.d("status","status while()");
-                        try {
-
-                            byte[] frameId = HomeFragment.convertShortToBytes(SteeringVariables.frameId1);
-                            byte[] concatenatedArray02 = {SteeringVariables.startId,frameId[0],frameId[1], SteeringVariables.dlc,0x02,SteeringVariables.data2,SteeringVariables.data3,SteeringVariables.data5[0],SteeringVariables.data5[1],SteeringVariables.data6,SteeringVariables.data7,SteeringVariables.data8,SteeringVariables.endId1,SteeringVariables.endId2};
-                            byte[] concatenatedArray03 = {SteeringVariables.startId,frameId[0],frameId[1], SteeringVariables.dlc,0x03,SteeringVariables.data2,SteeringVariables.data3,SteeringVariables.data5[0],SteeringVariables.data5[1],SteeringVariables.data6,SteeringVariables.data7,SteeringVariables.data8,SteeringVariables.endId1,SteeringVariables.endId2};
-                            byte[] concatenatedArray04 = {SteeringVariables.startId,frameId[0],frameId[1], SteeringVariables.dlc,0x04,SteeringVariables.data2,SteeringVariables.data3,SteeringVariables.data5[0],SteeringVariables.data5[1],SteeringVariables.data6,SteeringVariables.data7,SteeringVariables.data8,SteeringVariables.endId1,SteeringVariables.endId2};
-                            byte[] concatenatedArray05 = {SteeringVariables.startId,frameId[0],frameId[1], SteeringVariables.dlc,0x05,SteeringVariables.data2,SteeringVariables.data3,SteeringVariables.data5[0],SteeringVariables.data5[1],SteeringVariables.data6,SteeringVariables.data7,SteeringVariables.data8,SteeringVariables.endId1,SteeringVariables.endId2};
-
-                            sendReceive.write(concatenatedArray02);
-                            sendReceive.write(concatenatedArray03);
-                            sendReceive.write(concatenatedArray04);
-                            sendReceive.write(concatenatedArray05);
-                            Thread.sleep(500); // Delay for 1 second (1000 milliseconds)
-                        } catch (InterruptedException e) {
-                            Log.d("status","thread ex "+e);
-                            e.printStackTrace();
-                        }
-                    }
-                }
-            }).start();
-
-        }
     }
-
-
-
 
 }
