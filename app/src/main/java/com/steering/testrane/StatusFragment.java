@@ -180,6 +180,7 @@ public class StatusFragment extends Fragment {
 //        }).start();
 
 
+        /// load status
         new Thread(new Runnable() {
             @Override
             public void run() {
@@ -187,7 +188,6 @@ public class StatusFragment extends Fragment {
                     try {
                         if(SteeringVariables.currentFragment.equals("status")) {
                             loadDataReceived();
-
                         }
                         else{
                             break;
@@ -267,47 +267,48 @@ public class StatusFragment extends Fragment {
 //    }
 
     public void loadDataReceived(){
+        try {
 
-        Log.d("shibhu",""+angle_value+" "+current_value+ " "+ecu_value+" "+motor_value+" "+torque_value);
+            Log.d("shibhu", "" + angle_value + " " + current_value + " " + ecu_value + " " + motor_value + " " + torque_value);
 
-        astatus.setText(angle_value);
-        cstatus.setText(current_value);
-        if(ecu_value){
-            estatus.setText("ok");
-            estatus.setTextColor(getResources().getColor(R.color.green));
-            elight.setImageResource(R.drawable.grnbtn);
-        }
-        else if(ecu_value==false){
+            astatus.setText(angle_value);
+            cstatus.setText(current_value);
+            if (ecu_value) {
+                estatus.setText("ok");
+                estatus.setTextColor(getResources().getColor(R.color.green));
+                elight.setImageResource(R.drawable.grnbtn);
+            } else if (ecu_value == false) {
 
-            estatus.setText("err");
-            estatus.setTextColor(getResources().getColor(R.color.red));
-            elight.setImageResource(R.drawable.redbtn);
+                estatus.setText("err");
+                estatus.setTextColor(getResources().getColor(R.color.red));
+                elight.setImageResource(R.drawable.redbtn);
+            }
+            if (motor_value) {
+                mstatus.setText("ok");
+                mstatus.setTextColor(getResources().getColor(R.color.green));
+                mlight.setImageResource(R.drawable.grnbtn);
+            } else if (motor_value == false) {
+                mstatus.setText("err");
+                mstatus.setTextColor(getResources().getColor(R.color.red));
+                mlight.setImageResource(R.drawable.redbtn);
+            }
+            if (torque_value) {
+                tstatus.setText("ok");
+                tstatus.setTextColor(getResources().getColor(R.color.green));
+                tlight.setImageResource(R.drawable.grnbtn);
+            } else if (torque_value == false) {
+                tstatus.setText("err");
+                tstatus.setTextColor(getResources().getColor(R.color.red));
+                tlight.setImageResource(R.drawable.redbtn);
+            }
+            if (r_value) {
+                rstatus.setText("receiving");
+            } else {
+                rstatus.setText("not receiving");
+            }
         }
-        if(motor_value){
-            mstatus.setText("ok");
-            mstatus.setTextColor(getResources().getColor(R.color.green));
-            mlight.setImageResource(R.drawable.grnbtn);
-        }
-        else if(motor_value==false){
-            mstatus.setText("err");
-            mstatus.setTextColor(getResources().getColor(R.color.red));
-            mlight.setImageResource(R.drawable.redbtn);
-        }
-        if(torque_value){
-            tstatus.setText("ok");
-            tstatus.setTextColor(getResources().getColor(R.color.green));
-            tlight.setImageResource(R.drawable.grnbtn);
-        }
-        else if(torque_value==false){
-            tstatus.setText("err");
-            tstatus.setTextColor(getResources().getColor(R.color.red));
-            tlight.setImageResource(R.drawable.redbtn);
-        }
-
-        if(r_value){
-            rstatus.setText("receiving");
-        }else{
-            rstatus.setText("not receiving");
+        catch (Exception e){
+            Log.d("Exception status",""+e);
         }
 
     }

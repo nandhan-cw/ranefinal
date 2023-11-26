@@ -6,6 +6,7 @@ import static androidx.constraintlayout.helper.widget.MotionEffect.TAG;
 import static com.steering.testrane.SteeringVariables.angle_value;
 import static com.steering.testrane.SteeringVariables.current_value;
 import static com.steering.testrane.SteeringVariables.ecu_value;
+import static com.steering.testrane.SteeringVariables.first_occur;
 import static com.steering.testrane.SteeringVariables.listOfByteArrays;
 import static com.steering.testrane.SteeringVariables.listOfStringReceive;
 import static com.steering.testrane.SteeringVariables.motor_value;
@@ -22,10 +23,13 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
+import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -80,7 +84,7 @@ public class HomeFragment extends Fragment {
     ImageView steeringwheel;
     static LinearLayout bltbtn;
     ImageView leftkey;
-    ImageView rightkey,lockicon,bltbtnimg;
+    ImageView rightkey, lockicon, bltbtnimg;
     ImageView volume;
     static ImageView lwheel;
     static ImageView rwheel;
@@ -143,7 +147,7 @@ public class HomeFragment extends Fragment {
     boolean isRotationInProgress = false;
     private static final long ROTATION_DELAY = 2000;
     SharedPreferences sharedPreferences;
-    private static float initial_current1=0f;
+    private static float initial_current1 = 0f;
     byte[] datainitial = SteeringVariables.data5; // 2-byte array representing a 16-bit integer
     float floatValue;
 
@@ -174,9 +178,7 @@ public class HomeFragment extends Fragment {
         lockicon = view.findViewById(R.id.lockicon);
         bltbtnimg = view.findViewById(R.id.bltbtnimg);
 
-
         final AudioManager audioManager = (AudioManager) getActivity().getSystemService(Context.AUDIO_SERVICE);
-        Log.d("dataa", angle_value);
         MAX_ROTATION_ANGLE = Float.parseFloat(SteeringVariables.max_angle);
         sharedPreferences = getActivity().getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE);
         SteeringVariables.steeringStatus = sharedPreferences.getString("steeringstatus", "not_locked");
@@ -201,22 +203,26 @@ public class HomeFragment extends Fragment {
 
 
         short shortValue = (short) ((datainitial[0] & 0xFF) << 8 | (datainitial[1] & 0xFF));
-        int decimalValue = (datainitial[0] & 0xFF) << 8 | (datainitial[1] & 0xFF);
-        if (SteeringVariables.data3 == 0x00) {
-            floatValue = (float) decimalValue;
-        } else {
-            floatValue = (float) (-decimalValue);
-        }
-        initialTouchAngle = floatValue;
-        currentRotationAngle = floatValue;
-        rotationAngleProcess();
+
+
+//        if(first_occur==false){
+//            Log.d("12398value12398",""+SteeringVariables.data5[0]+SteeringVariables.data5[1]);
+//            int decimalValue = (SteeringVariables.data5[0] & 0xFF) << 8 | (SteeringVariables.data5[1] & 0xFF);
+//            if (SteeringVariables.data3 == 0x00) {
+//                floatValue = (float) decimalValue;
+//            } else {
+//                floatValue = (float) (-decimalValue);
+//            }
+//            initialTouchAngle = floatValue;
+//            currentRotationAngle = floatValue;
+//            rotationAngleProcess();
+//        }
 
 //        if(SteeringVariables.steeringauto.equals("on")){
 //            SteeringVariables.data5 = new byte[]{0x00,0x00};
 //        }
 
 
-        Log.d("value123",""+SteeringVariables.data5[0]+SteeringVariables.data5[1]);
         byte[] datainitial = SteeringVariables.data5; // 2-byte array representing a 16-bit integer
         float floatValue;
         // Convert little-endian 16-bit integer to float manually
@@ -235,7 +241,6 @@ public class HomeFragment extends Fragment {
         vehicleChange();
 
 //        rotateLWheel(floatValue);
-        Log.d("checksteer","3 "+SteeringVariables.steeringStatus);
         if (SteeringVariables.steeringStatus.equals("not_locked")) {
             steeringwheel.setEnabled(true);
 
@@ -270,6 +275,11 @@ public class HomeFragment extends Fragment {
                 }
             }
         };
+
+//        rotationAngleProcess();
+        steeringwheel.setRotation(currentRotationAngle);
+        rotateLWheel(currentRotationAngle);
+        Log.d("dataa", currentRotationAngle+"");
 
         lockicon.setOnClickListener(new View.OnClickListener() {
             @SuppressLint("ResourceAsColor")
@@ -422,111 +432,109 @@ public class HomeFragment extends Fragment {
             }
         });
 
-            steeringwheel.setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
-                    if (SteeringVariables.steeringStatus.equals("locked")) {
-                        steeringwheel.setEnabled(false);
-                    }
-                    else {
+        steeringwheel.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                if (SteeringVariables.steeringStatus.equals("locked")) {
+                    steeringwheel.setEnabled(false);
+                } else {
 
-                        steeringwheel.setEnabled(true);
-                        float x = event.getX();
-                        float y = event.getY();
-                        touchAngle = calculateAngle(x, y);
+                    steeringwheel.setEnabled(true);
+                    float x = event.getX();
+                    float y = event.getY();
+                    touchAngle = calculateAngle(x, y);
 
-                        switch (event.getAction()) {
-                            case MotionEvent.ACTION_DOWN:
-                                initialTouchAngle = touchAngle;
-                                uniqueAnglesSet.clear();// Clear the angle set when a new touch is initiated
-                                break;
+                    switch (event.getAction()) {
+                        case MotionEvent.ACTION_DOWN:
+                            initialTouchAngle = touchAngle;
+                            uniqueAnglesSet.clear();// Clear the angle set when a new touch is initiated
+                            break;
 
-                            // Inside MotionEvent.ACTION_MOVE case:
-                            // Define a Set to store unique angles
+                        // Inside MotionEvent.ACTION_MOVE case:
+                        // Define a Set to store unique angles
 // Inside MotionEvent.ACTION_MOVE case:
 
-                            case MotionEvent.ACTION_MOVE:
-                                Log.d("touchangle",""+touchAngle);
+                        case MotionEvent.ACTION_MOVE:
+                            Log.d("touchangle", "" + touchAngle);
 //                                Log.d("checkinsert", "1");
-                                rotationAngleProcess();
+                            rotationAngleProcess();
 
-                                float vibrationIntensity = calculateVibrationIntensity(currentRotationAngle);
-                                startVibration(Float.parseFloat(SteeringVariables.vibration));
+                            float vibrationIntensity = calculateVibrationIntensity(currentRotationAngle);
+                            startVibration(Float.parseFloat(SteeringVariables.vibration));
 
-                                break;
+                            break;
 
 
-                            case MotionEvent.ACTION_UP:
-                                SteeringVariables.release = true;
-                                stopVibration();
-                                angleSet.clear();
-                                if ("on".equals(SteeringVariables.steeringauto) && !isRotationInProgress) {
-//                                SteeringVariables.data5 = new byte[]{0x00, 0x00};
-                                    // Enable auto rotation and start rotation after ROTATION_DELAY milliseconds
+                        case MotionEvent.ACTION_UP:
+                            SteeringVariables.release = true;
+                            stopVibration();
+                            angleSet.clear();
+                            if ("on".equals(SteeringVariables.steeringauto) && !isRotationInProgress) {
+                                SteeringVariables.data5 = new byte[]{0x00, 0x00};
+                                // Enable auto rotation and start rotation after ROTATION_DELAY milliseconds
 //                                    SteeringVariables.home_thread_flag = false;
-                                    Log.d("checkvalue1", "ca: " + currentRotationAngle + " ta: " + touchAngle + " ita: " + initialTouchAngle);
-                                    Float tempangle = touchAngle;
-                                    Float tempia = initialTouchAngle;
-                                    Float temoca = currentRotationAngle;
-                                    final Float[] tempca = {currentRotationAngle};
-                                    float rotationAngleDiff = tempangle - tempia;
-                                    // Check if the rotation step is greater than the threshold
-                                    if (Math.abs(rotationAngleDiff) >= TOUCH_SENSITIVITY_THRESHOLD) {
-                                        temoca += (rotationAngleDiff > 0) ? ROTATION_STEP : -ROTATION_STEP;
-                                        temoca = Math.min(MAX_ROTATION_ANGLE, Math.max(-MAX_ROTATION_ANGLE, temoca));
-                                    }
-                                    Log.d("checkvalue:", "value of new angle: " + temoca + " " + tempangle + " " + tempia);
-                                    Float finalTemoca = temoca;
-
-                                    if(temoca<0){
-                                        for(float i=temoca; i<=0;i++){
-//                                            Log.d("unique: ",""+i+" "+uniqueAnglesSetSendVal.contains(i));
-                                                uniqueAnglesSetSendVal.add(i);
-                                        }
-                                    }
-                                    else{
-                                        for(float i=temoca; i>=0;i--){
-//                                                Log.d("unique: ",""+i);
-                                                uniqueAnglesSetSendVal.add(i);
-                                        }
-                                    }
-                                    initial_current1 = 0f;
-
-                                    touchAngle = 0f;
-                                    initialTouchAngle = 0f;
-                                    currentRotationAngle = 0f;
-                                    rotationHandler.postDelayed(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            ObjectAnimator rotateAnimator1 = ObjectAnimator.ofFloat(wheelL, "rotation", wheelL.getRotation(), Float.parseFloat("0"));
-                                            rotateAnimator1.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
-                                            rotateAnimator1.start();
-                                            ObjectAnimator rotateAnimator2 = ObjectAnimator.ofFloat(wheelR, "rotation", wheelR.getRotation(), Float.parseFloat("0"));
-                                            rotateAnimator2.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
-                                            rotateAnimator2.start();
-                                            rotateSteeringWheel(0); // Rotate to 0 degrees
-//                                        touchAngle = 0f;
-                                        }
-                                    }, ROTATION_DELAY);
-                                    // Iterate through the list and send each value via Bluetooth
-
+                                Log.d("checkvalue1", "ca: " + currentRotationAngle + " ta: " + touchAngle + " ita: " + initialTouchAngle);
+                                Float tempangle = touchAngle;
+                                Float tempia = initialTouchAngle;
+                                Float temoca = currentRotationAngle;
+                                final Float[] tempca = {currentRotationAngle};
+                                float rotationAngleDiff = tempangle - tempia;
+                                // Check if the rotation step is greater than the threshold
+                                if (Math.abs(rotationAngleDiff) >= TOUCH_SENSITIVITY_THRESHOLD) {
+                                    temoca += (rotationAngleDiff > 0) ? ROTATION_STEP : -ROTATION_STEP;
+                                    temoca = Math.min(MAX_ROTATION_ANGLE, Math.max(-MAX_ROTATION_ANGLE, temoca));
                                 }
-                                break;
-                        }
+                                Log.d("checkvalue:", "value of new angle: " + temoca + " " + tempangle + " " + tempia);
+                                Float finalTemoca = temoca;
 
+                                if (temoca < 0) {
+                                    for (float i = temoca; i <= 0; i++) {
+//                                            Log.d("unique: ",""+i+" "+uniqueAnglesSetSendVal.contains(i));
+                                        uniqueAnglesSetSendVal.add(i);
+                                    }
+                                } else {
+                                    for (float i = temoca; i >= 0; i--) {
+//                                                Log.d("unique: ",""+i);
+                                        uniqueAnglesSetSendVal.add(i);
+                                    }
+                                }
+                                initial_current1 = 0f;
 
+                                touchAngle = 0f;
+                                initialTouchAngle = 0f;
+                                currentRotationAngle = 0f;
+                                rotationHandler.postDelayed(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        ObjectAnimator rotateAnimator1 = ObjectAnimator.ofFloat(wheelL, "rotation", wheelL.getRotation(), Float.parseFloat("0"));
+                                        rotateAnimator1.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
+                                        rotateAnimator1.start();
+                                        ObjectAnimator rotateAnimator2 = ObjectAnimator.ofFloat(wheelR, "rotation", wheelR.getRotation(), Float.parseFloat("0"));
+                                        rotateAnimator2.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
+                                        rotateAnimator2.start();
+                                        rotateSteeringWheel(0); // Rotate to 0 degrees
+//                                        touchAngle = 0f;
+                                    }
+                                }, ROTATION_DELAY);
+                                // Iterate through the list and send each value via Bluetooth
+
+                            }
+                            break;
                     }
-                    return true;
-                }
-            });
 
-            /// load status
+
+                }
+                return true;
+            }
+        });
+
+        /// load status
         new Thread(new Runnable() {
             @Override
             public void run() {
-                while (true){
+                while (true) {
                     try {
-                        if(listOfStringReceive.size()>0) {
+                        if (listOfStringReceive.size() > 1) {
                             String curr_value = listOfStringReceive.get(0);
                             String one = curr_value.substring(0, 2);
                             String two = curr_value.substring(2, 4);
@@ -542,7 +550,7 @@ public class HomeFragment extends Fragment {
                             String twelve = curr_value.substring(22, 24);
                             String thirteen = curr_value.substring(24, 26);
                             String fourteen = curr_value.substring(26, 28);
-                            if (one.equals("40") && thirteen.equals("0d") && fourteen.equals("0a")) {
+                            if (one.equals("04") && thirteen.equals("0d") && fourteen.equals("0a")) {
                                 if (five.equals("02")) {
                                     byte fourdata = (byte) Integer.parseInt(eight, 16);
                                     byte fivedata = (byte) Integer.parseInt(nine, 16);
@@ -550,11 +558,9 @@ public class HomeFragment extends Fragment {
                                     String temp = "";
                                     if (seven.equals("00")) {
                                         temp = "" + decimalValue;
-//                                    astatus.setText(temp);
                                         SteeringVariables.angle_value = temp;
                                     } else if (seven.equals("01")) {
                                         temp = "-" + decimalValue;
-//                                    astatus.setText(temp);
                                         SteeringVariables.angle_value = temp;
                                     }
                                 }
@@ -606,24 +612,30 @@ public class HomeFragment extends Fragment {
                                     byte curent1 = (byte) Integer.parseInt(eleven, 16);
                                     byte curent2 = (byte) Integer.parseInt(twelve, 16);
                                     int decimalValue = (curent1 & 0xFF) << 8 | (curent2 & 0xFF);
-                                    current_value = decimalValue+"";
+                                    current_value = decimalValue + "";
 //                                cstatus.setText(""+decimalValue);
                                 }
-
                             }
-                            listOfStringReceive.remove(0);
+                            if (listOfStringReceive.size() != 1) {
+                                listOfStringReceive.remove(0);
+                            }
                             Thread.sleep(100);
                         }
-                    }
-                    catch (Exception e){
-                        Log.d("Error","Can't load data");
+                    } catch (Exception e) {
+//                        Log.d("Error","Can't load data");
                     }
                 }
             }
         }).start();
 
 
+//        while(!r_value){
+//            setinitialangle();
+//        }
 
+
+
+        setinitialangle();
         bltbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -651,6 +663,7 @@ public class HomeFragment extends Fragment {
 
     }
 
+
     private void saveSteeringStatus(String status) {
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("sharedPrefs", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -669,7 +682,6 @@ public class HomeFragment extends Fragment {
     }
 
     public void rotationAngleProcess() {
-
         float rotationAngleDiff = touchAngle - initialTouchAngle;
         if (Math.abs(rotationAngleDiff) >= TOUCH_SENSITIVITY_THRESHOLD) {
             // Calculate the new rotation angle
@@ -711,12 +723,10 @@ public class HomeFragment extends Fragment {
                     }
                 }
             }
-            for(float i:uniqueAnglesSetSendVal){
-//                Log.d("touchangle","angle "+i);
-            }
 
 //            byte[] formattedData = formatAndConvertData(currentRotationAngle);
             Log.d("touchangle","rotateangle "+uniqueAnglesSetSendVal.size());
+//            SteeringVariables.data5 = decimaltodoublebyte(currentRotationAngle);
             initial_current1 = currentRotationAngle;
             initialTouchAngle = touchAngle;
         }
@@ -801,10 +811,33 @@ public class HomeFragment extends Fragment {
         } else {
             SteeringVariables.data3 = 0x00;
         }
-
         String hexAngle = Integer.toHexString(angleValue);
+        if (angleValue <= 255) {
+            byte[] byteArray = new byte[2];
+            byteArray[0] = 0x00;
+            byteArray[1] = (byte) Integer.parseInt(hexAngle, 16);
+            return byteArray;
+        }
+        else {
+            // If angle is more than 255, store it in a double byte array
+            byte[] doubleByteArray = new byte[2];
+            doubleByteArray[0] = (byte) Integer.parseInt(hexAngle.substring(0, 2), 16);
+            doubleByteArray[1] = (byte) Integer.parseInt(hexAngle.substring(2), 16);
+            return doubleByteArray;
+        }
+
+    }
 
 
+    private static byte[] decimaltodoublebyte(float angle) {
+        int angleValue = (int) angle;
+        if (angleValue < 0) {
+            angleValue = Math.abs(angleValue);
+            SteeringVariables.data3 = 0x01;
+        } else {
+            SteeringVariables.data3 = 0x00;
+        }
+        String hexAngle = Integer.toHexString(angleValue);
         if (angleValue <= 255) {
             byte[] byteArray = new byte[2];
             byteArray[0] = 0x00;
@@ -813,7 +846,6 @@ public class HomeFragment extends Fragment {
             return byteArray;
         }
         else {
-            // If angle is more than 255, store it in a double byte array
             byte[] doubleByteArray = new byte[2];
             doubleByteArray[0] = (byte) Integer.parseInt(hexAngle.substring(0, 2), 16);
             doubleByteArray[1] = (byte) Integer.parseInt(hexAngle.substring(2), 16);
@@ -1208,6 +1240,7 @@ public class HomeFragment extends Fragment {
             String value = "";
             while (true) {
                 try {
+
 //                    Log.d("Reading","trying to get value");
                     bytes = inputStream.read(buffer);
                     //                    Log.d("Reading","trying to get value "+bytes);
@@ -1215,38 +1248,97 @@ public class HomeFragment extends Fragment {
                         r_value = true;
                         byte[] receivedDataBytes = Arrays.copyOf(buffer, bytes);
                         String receivedDataHex = byteArrayToHexString(receivedDataBytes).toLowerCase();
-                        if(value.startsWith("40") && value.endsWith("0d0a") && value.length()==28){
-                            if(listOfStringReceive.size()<0){
-                                listOfStringReceive.clear();
-                            }
-                            listOfStringReceive.add(value);
-                            value = "";
-                        }
+
+//                        if(value.startsWith("40") && value.endsWith("0d0a") && value.length()==28){
+//                            if(listOfStringReceive.size()<0){
+//                                listOfStringReceive.clear();
+//                            }
+//                            listOfStringReceive.add(value);
+//                            value = "";
+//                        }
                         if(value.length()!=28){
                             value = value+receivedDataHex;
                         }
+                        else{
+                            if(SteeringVariables.first_occur){
+                                String curr_value = value;
+                                String five = curr_value.substring(8, 10);
+                                String seven = curr_value.substring(12, 14);
+                                String eight = curr_value.substring(14, 16);
+                                String nine = curr_value.substring(16, 18);
+                                if (five.equals("02")) {
+                                    byte fourdata = (byte) Integer.parseInt(eight, 16);
+                                    byte fivedata = (byte) Integer.parseInt(nine, 16);
+                                    int decimalValue = (fourdata & 0xFF) << 8 | (fivedata & 0xFF);
+                                    String temp = "";
+                                    if (seven.equals("00")) {
+                                        temp = "" + decimalValue;
+                                        SteeringVariables.first_angle = temp;
+//                                            SteeringVariables.angle_value = temp;
+                                    } else if (seven.equals("01")) {
+                                        temp = "-" + decimalValue;
+                                        SteeringVariables.first_angle = temp;
+//                                            SteeringVariables.angle_value = temp;
+                                    }
+                                }
 
-                        Log.d("shibhusetangle",SteeringVariables.setangle);
+                                if(SteeringVariables.setangle.equals("zero")){
+                                    if (SteeringVariables.data3 == 0x00) {
+                                        floatValue = (float) 0;
+                                    } else {
+                                        floatValue = (float) (-0);
+                                    }
 
-//                        if(SteeringVariables.setangle.equals("zero")){
-//                            if (SteeringVariables.data3 == 0x00) {
-//                                floatValue = (float) 0;
-//                            } else {
-//                                floatValue = (float) (-0);
-//                            }
-//                            initialTouchAngle = floatValue;
-//                            currentRotationAngle = floatValue;
-//                            rotationAngleProcess();
-//                        }else if(SteeringVariables.setangle.equals("angle")){
-//                            if (SteeringVariables.data3 == 0x00) {
-//                                floatValue = (float) 0;
-//                            } else {
-//                                floatValue = (float) (-0);
-//                            }
-//                            initialTouchAngle = floatValue;
-//                            currentRotationAngle = floatValue;
-//                            rotationAngleProcess();
-//                        }
+                                    rotationHandler.postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            ObjectAnimator rotateAnimator1 = ObjectAnimator.ofFloat(wheelL, "rotation", wheelL.getRotation(), floatValue);
+                                            rotateAnimator1.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
+                                            rotateAnimator1.start();
+                                            ObjectAnimator rotateAnimator2 = ObjectAnimator.ofFloat(wheelR, "rotation", wheelR.getRotation(), floatValue);
+                                            rotateAnimator2.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
+                                            rotateAnimator2.start();
+                                            rotateSteeringWheel(floatValue);
+                                        }
+                                    }, ROTATION_DELAY);
+                                    Log.d("testangleshibo",SteeringVariables.setangle+" "+floatValue);
+                                    initialTouchAngle = floatValue;
+                                    currentRotationAngle = floatValue;
+                                    SteeringVariables.data5= new byte[]{0x00, 0x00};
+                                }
+                                else if(SteeringVariables.setangle.equals("angle")){
+
+                                    float valuefloat = Float.parseFloat(SteeringVariables.first_angle);
+                                    if (valuefloat>0) {
+                                        floatValue = (float) Math.abs(valuefloat);
+                                    } else {
+                                        floatValue = (float) valuefloat;
+                                    }
+
+                                    rotationHandler.postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            ObjectAnimator rotateAnimator1 = ObjectAnimator.ofFloat(wheelL, "rotation", wheelL.getRotation(), floatValue);
+                                            rotateAnimator1.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
+                                            rotateAnimator1.start();
+                                            ObjectAnimator rotateAnimator2 = ObjectAnimator.ofFloat(wheelR, "rotation", wheelR.getRotation(), floatValue);
+                                            rotateAnimator2.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
+                                            rotateAnimator2.start();
+                                            rotateSteeringWheel(floatValue);
+                                        }
+                                    }, ROTATION_DELAY);
+                                    Log.d("testangleshibo",SteeringVariables.setangle+" "+floatValue);
+//                                    SteeringVariables.data5= decimaltodoublebyte(floatValue);
+                                    initialTouchAngle = floatValue;
+                                    currentRotationAngle = floatValue;
+                                }
+
+                                SteeringVariables.first_occur = false;
+                            }
+                            value = "";
+                        }
+                        listOfStringReceive.add(value);
+
                     }
                     else{
                         r_value = false;
@@ -1270,6 +1362,35 @@ public class HomeFragment extends Fragment {
         }
     }
 
+
+    public void setinitialangle(){
+
+        Log.d("testangleshibo",SteeringVariables.first_angle+" ");
+        if(SteeringVariables.setangle.equals("zero")){
+            if (SteeringVariables.data3 == 0x00) {
+                floatValue = (float) 0;
+            } else {
+                floatValue = (float) (-0);
+            }
+            Log.d("testangleshibo",SteeringVariables.setangle+" "+floatValue);
+//                            initialTouchAngle = floatValue;
+//                            currentRotationAngle = floatValue;
+//                            rotationAngleProcess();
+        }
+        else if(SteeringVariables.setangle.equals("angle")){
+
+            float valuefloat = Float.parseFloat(SteeringVariables.first_angle);
+            if (valuefloat>0) {
+                floatValue = (float) Math.abs(valuefloat);
+            } else {
+                floatValue = (float) Math.abs(valuefloat);
+            }
+            Log.d("testangleshibo",SteeringVariables.setangle+" "+floatValue);
+//                            initialTouchAngle = floatValue;
+//                            currentRotationAngle = floatValue;
+//                            rotationAngleProcess();
+        }
+    }
         public static byte[] hexStringToByteArray(String hexString) {
             int len = hexString.length();
             byte[] data = new byte[len / 2];
@@ -1300,7 +1421,7 @@ public class HomeFragment extends Fragment {
 //                    SteeringVariables.home_thread_flag=true;
                     SteeringVariables.sendReceive=null;
                     SteeringVariables.bluetoothAdapter = null;
-//                    bltbtn.setImageResource(R.drawable.baseline_bluetooth_disabled_24);
+                    bltbtnimg.setImageResource(R.drawable.baseline_bluetooth_disabled_24);
                     connectStatus.setText("Not Connected");
                     break;
                 case STATE_LISTENING:
@@ -1400,11 +1521,11 @@ public class HomeFragment extends Fragment {
                             }
 
                             byte[] frameId = convertShortToBytes(SteeringVariables.frameId1);
-//                                        Log.d("anglecheckshibhu","list else "+curent_send_val[0]+" "+curent_send_val[1]);
+//                          Log.d("anglecheckshibhu","list else "+curent_send_val[0]+" "+curent_send_val[1]);
 
                             byte[] concatenatedArray = {SteeringVariables.startId, frameId[0], frameId[1], SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3, curent_send_val[0], curent_send_val[1], SteeringVariables.data6, SteeringVariables.data7, SteeringVariables.data8, SteeringVariables.endId1, SteeringVariables.endId2};
                             SteeringVariables.sendReceive.write(concatenatedArray);
-                            Thread.sleep(20);
+                            Thread.sleep(500);
                         }
                         catch (Exception e){
                             Log.d("SendValue",""+e);

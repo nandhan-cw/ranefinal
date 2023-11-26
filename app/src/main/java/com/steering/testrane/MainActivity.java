@@ -189,7 +189,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
 
-//        setAngleDialog();
+        setAngleDialog();
 
 
     }

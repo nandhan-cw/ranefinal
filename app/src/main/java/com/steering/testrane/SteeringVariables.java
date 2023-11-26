@@ -55,7 +55,6 @@ public class SteeringVariables {
     public static byte endId1 = 0x0D;
     public static byte endId2 = 0x0A;
 
-
     public static boolean ecu_value = true;
 
     public static boolean motor_value = true;
@@ -65,6 +64,8 @@ public class SteeringVariables {
 
     public static boolean r_value = false;
 
+    public static boolean first_occur = true;
+    public static String first_angle="";
     public static ArrayList<byte[]> listOfByteArrays = new ArrayList<>();
 
     public static ArrayList<String> listOfStringReceive = new ArrayList<>();
