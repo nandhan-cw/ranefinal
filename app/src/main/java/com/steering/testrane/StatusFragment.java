@@ -202,9 +202,6 @@ public class StatusFragment extends Fragment {
             }
         });
 
-
-
-
         /// load status
         new Thread(new Runnable() {
             @Override
@@ -277,24 +274,11 @@ public class StatusFragment extends Fragment {
         }
     }
 
-    // Handle back press to navigate back to LockSteeringFragment
-//    public static String bytesToHex(byte[] bytes) {
-//        StringBuilder sb = new StringBuilder(bytes.length * 2);
-//        Log.d("value","length: "+bytes.length);
-//        SteeringVariables.RxSignal = bytes[5];
-//        for(byte b: bytes) {
-//            if (sb.length() <= 26) {
-//                sb.append(String.format("%02x", b));
-//            }
-//        }
-//        SteeringVariables.receivedSignal = sb.toString();
-//        return sb.toString();
-//    }
 
     public void loadDataReceived(){
         try {
 
-            Log.d("shibhu", "" + angle_value + " " + current_value + " " + ecu_value + " " + motor_value + " " + torque_value);
+//            Log.d("shibhu", "" + angle_value + " " + current_value + " " + ecu_value + " " + motor_value + " " + torque_value);
 
             astatus.setText(angle_value);
             cstatus.setText(current_value);
