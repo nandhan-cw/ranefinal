@@ -93,7 +93,7 @@ public class HomeFragment extends Fragment {
     Dialog blueToothListPopup;
     MediaPlayer mediaPlayer;
     private float initialTouchAngle = 0f;
-    private float currentRotationAngle = 0f;
+    private static float currentRotationAngle = 0f;
     private float currentRotationAngle1 = 0f;
     private static final int TOUCH_SENSITIVITY_THRESHOLD = 10; // Touch sensitivity threshold
     private static final float ROTATION_STEP = 10f; // Rotation step in degrees
@@ -132,7 +132,8 @@ public class HomeFragment extends Fragment {
     static ImageView r2wheel;
     private boolean isAutoRotationEnabled = false;
     float touchAngle;
-    ArrayList<Float> anglelist,uniqueAnglesSetSendVal;
+    ArrayList<Float> anglelist;
+    static ArrayList<Float> uniqueAnglesSetSendVal;
     Set<Float> uniqueAnglesSet;
     static RelativeLayout carbody;
     static RelativeLayout truckbody;
@@ -447,7 +448,7 @@ public class HomeFragment extends Fragment {
 
                             case MotionEvent.ACTION_MOVE:
                                 Log.d("touchangle",""+touchAngle);
-                                Log.d("checkinsert", "1");
+//                                Log.d("checkinsert", "1");
                                 rotationAngleProcess();
 
                                 float vibrationIntensity = calculateVibrationIntensity(currentRotationAngle);
@@ -742,10 +743,12 @@ public class HomeFragment extends Fragment {
                     }
                 }
             }
+            for(float i:uniqueAnglesSetSendVal){
+//                Log.d("touchangle","angle "+i);
+            }
 
-//            Log.d("anglecheckshibhu1","sendreceive "+uniqueAnglesSetSendVal.get(uniqueAnglesSetSendVal.size()-1));
 //            byte[] formattedData = formatAndConvertData(currentRotationAngle);
-
+            Log.d("touchangle","rotateangle "+uniqueAnglesSetSendVal.size());
             initial_current1 = currentRotationAngle;
             initialTouchAngle = touchAngle;
         }
@@ -822,7 +825,7 @@ public class HomeFragment extends Fragment {
         }
     }
 
-    private byte[] formatAndConvertData(float angle) {
+    private static byte[] formatAndConvertData(float angle) {
         int angleValue = (int) angle;
         if (angleValue < 0) {
             angleValue = Math.abs(angleValue);
@@ -1372,8 +1375,6 @@ public class HomeFragment extends Fragment {
 //                        rotateAnimator2.start();
 //                        rotateSteeringWheel(angle);
 //                    }
-
-
                     while(SteeringVariables.sendReceive==null){
                         if (SteeringVariables.sendReceive != null) {
                             break;
@@ -1383,51 +1384,7 @@ public class HomeFragment extends Fragment {
                             // Handle the case where Bluetooth connection or message sending is not available
                         }
                     }
-
-                    if (SteeringVariables.sendReceive != null) {
-                        new Thread(new Runnable() {
-                            @Override
-                            public void run() {
-                                byte[] curent_send_val = new byte[0];
-                                while (true) {
-//                                    Log.d("anglecheckshibhu","sendreceive "+uniqueAnglesSetSendVal.size());
-                                    try {
-                                        if (uniqueAnglesSetSendVal.size() > 0) {
-                                            float cur_val = uniqueAnglesSetSendVal.get(0);
-                                            curent_send_val = formatAndConvertData(cur_val);
-                                            uniqueAnglesSetSendVal.remove(0);
-//                                            Log.d("anglecheckshibhu",cur_val+"");
-//                                            byte[] frameId = convertShortToBytes(SteeringVariables.frameId1);
-//                                            byte[] concatenatedArray = {SteeringVariables.startId, frameId[0], frameId[1], SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3, curent_send_val[0], curent_send_val[1], SteeringVariables.data6, SteeringVariables.data7, SteeringVariables.data8, SteeringVariables.endId1, SteeringVariables.endId2};
-//                                            SteeringVariables.sendReceive.write(concatenatedArray);
-//                                            Thread.sleep(10);
-                                        }
-                                        else{
-//                                            curent_send_val = curent_send_val;
-//                                            Log.d("shibhuu",""+currentRotationAngle);
-                                            curent_send_val = formatAndConvertData(currentRotationAngle);
-                                        }
-
-                                        byte[] frameId = convertShortToBytes(SteeringVariables.frameId1);
-//                                        Log.d("anglecheckshibhu","list else "+curent_send_val[0]+" "+curent_send_val[1]);
-
-                                        byte[] concatenatedArray = {SteeringVariables.startId, frameId[0], frameId[1], SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3, curent_send_val[0], curent_send_val[1], SteeringVariables.data6, SteeringVariables.data7, SteeringVariables.data8, SteeringVariables.endId1, SteeringVariables.endId2};
-                                        SteeringVariables.sendReceive.write(concatenatedArray);
-                                        Thread.sleep(20);
-                                    }
-                                        catch (Exception e){
-                                        Log.d("SendValue",""+e);
-                                    }
-
-
-                                }
-                            }
-                        }).start();
-                    }
-                    else {
-//                            Toast.makeText(getContext(), "hellloooooo", Toast.LENGTH_SHORT).show();
-                        // Handle the case where Bluetooth connection or message sending is not available
-                    }
+                    sendDataTo();
                     bltbtnimg.setImageResource(R.drawable.baseline_bluetooth_24);
                     int blueColor = ContextCompat.getColor(getContext(), R.color.blue); // R.color.blue should be defined in your resources
                     PorterDuff.Mode mode = PorterDuff.Mode.SRC_ATOP;
@@ -1438,8 +1395,6 @@ public class HomeFragment extends Fragment {
                     break;
                 case STATE_MESSAGE_RECEIVED:
                     byte[] readBuff = (byte[]) msg.obj;
-
-
                     listOfByteArrays.add(readBuff);
                     String hexString = bytesToHex(readBuff);
                     if(byteToHex(SteeringVariables.RxSignal).toLowerCase().equals("3e")){
@@ -1455,6 +1410,58 @@ public class HomeFragment extends Fragment {
             return true;
         }
     });
+
+    public static void sendDataTo(){
+        if (SteeringVariables.sendReceive != null) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    byte[] curent_send_val = new byte[0];
+                    while (true) {
+//                                    Log.d("touchangle","sendreceive "+uniqueAnglesSetSendVal.size());
+                        try {
+                            if (uniqueAnglesSetSendVal.size() > 1) {
+                                Log.d("touchangle","sendreceive "+uniqueAnglesSetSendVal.size());
+                                float cur_val = uniqueAnglesSetSendVal.get(0);
+                                curent_send_val = formatAndConvertData(cur_val);
+                                uniqueAnglesSetSendVal.remove(0);
+//                                            Log.d("anglecheckshibhu",cur_val+"");
+//                                            byte[] frameId = convertShortToBytes(SteeringVariables.frameId1);
+//                                            byte[] concatenatedArray = {SteeringVariables.startId, frameId[0], frameId[1], SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3, curent_send_val[0], curent_send_val[1], SteeringVariables.data6, SteeringVariables.data7, SteeringVariables.data8, SteeringVariables.endId1, SteeringVariables.endId2};
+//                                            SteeringVariables.sendReceive.write(concatenatedArray);
+//                                            Thread.sleep(10);
+                            }
+                            else if(uniqueAnglesSetSendVal.size()==1){
+                                float cur_val = uniqueAnglesSetSendVal.get(0);
+                                curent_send_val = formatAndConvertData(cur_val);
+                            }
+                            else{
+//                                            curent_send_val = curent_send_val;
+//                                            Log.d("shibhuu",""+currentRotationAngle);
+                                curent_send_val = formatAndConvertData(currentRotationAngle);
+                            }
+
+                            byte[] frameId = convertShortToBytes(SteeringVariables.frameId1);
+//                                        Log.d("anglecheckshibhu","list else "+curent_send_val[0]+" "+curent_send_val[1]);
+
+                            byte[] concatenatedArray = {SteeringVariables.startId, frameId[0], frameId[1], SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3, curent_send_val[0], curent_send_val[1], SteeringVariables.data6, SteeringVariables.data7, SteeringVariables.data8, SteeringVariables.endId1, SteeringVariables.endId2};
+                            SteeringVariables.sendReceive.write(concatenatedArray);
+                            Thread.sleep(300);
+                        }
+                        catch (Exception e){
+                            Log.d("SendValue",""+e);
+                        }
+
+
+                    }
+                }
+            }).start();
+        }
+        else {
+//                            Toast.makeText(getContext(), "hellloooooo", Toast.LENGTH_SHORT).show();
+            // Handle the case where Bluetooth connection or message sending is not available
+        }
+    }
 
     public static String bytesToHex(byte[] bytes) {
         StringBuilder sb = new StringBuilder(bytes.length * 2);
