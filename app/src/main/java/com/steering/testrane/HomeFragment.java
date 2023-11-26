@@ -542,6 +542,7 @@ public class HomeFragment extends Fragment {
                             String twelve = curr_value.substring(22, 24);
                             String thirteen = curr_value.substring(24, 26);
                             String fourteen = curr_value.substring(26, 28);
+//                            Log.d("checknandha",""+curr_value+" "+one+" "+five+" "+seven+" "+eight+" "+nine+" "+eleven+" "+twelve);
                             if (one.equals("40") && thirteen.equals("0d") && fourteen.equals("0a")) {
                                 if (five.equals("02")) {
                                     byte fourdata = (byte) Integer.parseInt(eight, 16);
@@ -711,9 +712,9 @@ public class HomeFragment extends Fragment {
                     }
                 }
             }
-            for(float i:uniqueAnglesSetSendVal){
-//                Log.d("touchangle","angle "+i);
-            }
+//            for(float i:uniqueAnglesSetSendVal){
+////                Log.d("touchangle","angle "+i);
+//            }
 
 //            byte[] formattedData = formatAndConvertData(currentRotationAngle);
             Log.d("touchangle","rotateangle "+uniqueAnglesSetSendVal.size());
@@ -1215,10 +1216,13 @@ public class HomeFragment extends Fragment {
                         r_value = true;
                         byte[] receivedDataBytes = Arrays.copyOf(buffer, bytes);
                         String receivedDataHex = byteArrayToHexString(receivedDataBytes).toLowerCase();
+                        Log.d("checknandha",receivedDataHex);
                         if(value.startsWith("40") && value.endsWith("0d0a") && value.length()==28){
                             if(listOfStringReceive.size()<0){
                                 listOfStringReceive.clear();
                             }
+                            Log.d("checknandha",receivedDataHex);
+
                             listOfStringReceive.add(value);
                             value = "";
                         }
@@ -1398,13 +1402,13 @@ public class HomeFragment extends Fragment {
 //                                            Log.d("shibhuu",""+currentRotationAngle);
                                 curent_send_val = formatAndConvertData(currentRotationAngle);
                             }
-
+                            Log.d("sendatacheck", curent_send_val.toString());
                             byte[] frameId = convertShortToBytes(SteeringVariables.frameId1);
-//                                        Log.d("anglecheckshibhu","list else "+curent_send_val[0]+" "+curent_send_val[1]);
+                                        Log.d("anglecheckshibhu","list else "+curent_send_val[0]+" "+curent_send_val[1]);
 
                             byte[] concatenatedArray = {SteeringVariables.startId, frameId[0], frameId[1], SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3, curent_send_val[0], curent_send_val[1], SteeringVariables.data6, SteeringVariables.data7, SteeringVariables.data8, SteeringVariables.endId1, SteeringVariables.endId2};
                             SteeringVariables.sendReceive.write(concatenatedArray);
-                            Thread.sleep(20);
+                            Thread.sleep(200);
                         }
                         catch (Exception e){
                             Log.d("SendValue",""+e);
