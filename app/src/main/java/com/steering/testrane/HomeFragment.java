@@ -158,8 +158,6 @@ public class HomeFragment extends Fragment {
         SteeringVariables.home_thread_flag = true;
         SteeringVariables.status_thread_flag = false;
 
-//        setAngleDialog();
-
         angletext = view.findViewById(R.id.angletext);
         connectStatus = view.findViewById(R.id.connectStatus);
         bltbtn = view.findViewById(R.id.bltbtn);
@@ -211,10 +209,13 @@ public class HomeFragment extends Fragment {
         }
         initialTouchAngle = floatValue;
         currentRotationAngle = floatValue;
+        rotationAngleProcess();
 
 //        if(SteeringVariables.steeringauto.equals("on")){
 //            SteeringVariables.data5 = new byte[]{0x00,0x00};
 //        }
+
+
         Log.d("value123",""+SteeringVariables.data5[0]+SteeringVariables.data5[1]);
         byte[] datainitial = SteeringVariables.data5; // 2-byte array representing a 16-bit integer
         float floatValue;
@@ -231,8 +232,6 @@ public class HomeFragment extends Fragment {
 
 //        touchAngle = 0f;
 
-
-        rotationAngleProcess();
         vehicleChange();
 
 //        rotateLWheel(floatValue);
@@ -624,37 +623,6 @@ public class HomeFragment extends Fragment {
         }).start();
 
 
-//        new Thread(new Runnable() {
-//            @Override
-//            public void run() {
-//                while (true) {
-//                    Log.d("angleshibhu", "" + SteeringVariables.setangle+" "+r_value);
-//                    if (r_value) {
-//                        if (SteeringVariables.setangle.equals("zero")) {
-//                            ObjectAnimator rotateAnimator = ObjectAnimator.ofFloat(wheelL, "rotation", wheelL.getRotation(), Float.parseFloat("0"));
-//                            rotateAnimator.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
-//                            rotateAnimator.start();
-//                            ObjectAnimator rotateAnimator2 = ObjectAnimator.ofFloat(wheelR, "rotation", wheelR.getRotation(), Float.parseFloat("0"));
-//                            rotateAnimator2.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
-//                            rotateAnimator2.start();
-//                            rotateSteeringWheel(0);
-//                        } else if (SteeringVariables.setangle.equals("angle")) {
-//
-//                            float angle = Float.parseFloat(angle_value);
-//                            Log.d("angleshibhu", "" + angle);
-//                            ObjectAnimator rotateAnimator = ObjectAnimator.ofFloat(wheelL, "rotation", angle, Float.parseFloat("0"));
-//                            rotateAnimator.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
-//                            rotateAnimator.start();
-//                            ObjectAnimator rotateAnimator2 = ObjectAnimator.ofFloat(wheelR, "rotation", angle, Float.parseFloat("0"));
-//                            rotateAnimator2.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
-//                            rotateAnimator2.start();
-//                            rotateSteeringWheel(angle);
-//                        }
-//                        break;
-//                    }
-//                }
-//            }
-//        }).start();
 
         bltbtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -913,36 +881,6 @@ public class HomeFragment extends Fragment {
         exitDialog.show();
     }
 
-    public void setAngleDialog() {
-        Dialog exitDialog = new Dialog(requireContext());
-        exitDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        exitDialog.setCancelable(true);
-        exitDialog.setContentView(R.layout.defaultanglepopup);
-        Button confirmButton = exitDialog.findViewById(R.id.confirmButton);
-        exitDialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
-        Button cancelButton = exitDialog.findViewById(R.id.cancelButton);
-
-        confirmButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                SteeringVariables.setangle = "angle";
-//                initialTouchAngle =
-                exitDialog.dismiss();
-            }
-        });
-
-        cancelButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                SteeringVariables.setangle = "zero";
-                exitDialog.dismiss();
-
-            }
-        });
-
-        // Show the exit confirmation dialog
-        exitDialog.show();
-    }
 
     public void blueToothListPopup(Context context) {
         final Dialog dialog = new Dialog(context);
@@ -1288,6 +1226,27 @@ public class HomeFragment extends Fragment {
                             value = value+receivedDataHex;
                         }
 
+                        Log.d("shibhusetangle",SteeringVariables.setangle);
+
+//                        if(SteeringVariables.setangle.equals("zero")){
+//                            if (SteeringVariables.data3 == 0x00) {
+//                                floatValue = (float) 0;
+//                            } else {
+//                                floatValue = (float) (-0);
+//                            }
+//                            initialTouchAngle = floatValue;
+//                            currentRotationAngle = floatValue;
+//                            rotationAngleProcess();
+//                        }else if(SteeringVariables.setangle.equals("angle")){
+//                            if (SteeringVariables.data3 == 0x00) {
+//                                floatValue = (float) 0;
+//                            } else {
+//                                floatValue = (float) (-0);
+//                            }
+//                            initialTouchAngle = floatValue;
+//                            currentRotationAngle = floatValue;
+//                            rotationAngleProcess();
+//                        }
                     }
                     else{
                         r_value = false;
@@ -1328,7 +1287,6 @@ public class HomeFragment extends Fragment {
             }
             return stringBuilder.toString();
         }
-
 
     Handler handler = new Handler(new Handler.Callback() {
         @Override
@@ -1446,7 +1404,7 @@ public class HomeFragment extends Fragment {
 
                             byte[] concatenatedArray = {SteeringVariables.startId, frameId[0], frameId[1], SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3, curent_send_val[0], curent_send_val[1], SteeringVariables.data6, SteeringVariables.data7, SteeringVariables.data8, SteeringVariables.endId1, SteeringVariables.endId2};
                             SteeringVariables.sendReceive.write(concatenatedArray);
-                            Thread.sleep(300);
+                            Thread.sleep(20);
                         }
                         catch (Exception e){
                             Log.d("SendValue",""+e);
@@ -1492,7 +1450,6 @@ public class HomeFragment extends Fragment {
         float angle = (float) Math.toDegrees(Math.atan2(y - centerY, x - centerX));
         return (angle < 0) ? angle + 360 : angle;
     }
-
 
 
 }

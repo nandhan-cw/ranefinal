@@ -188,6 +188,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+
+//        setAngleDialog();
+
+
     }
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
@@ -312,6 +316,35 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         }
     }
 
+    public void setAngleDialog() {
+        Dialog exitDialog = new Dialog(MainActivity.this);
+        exitDialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        exitDialog.setCancelable(true);
+        exitDialog.setContentView(R.layout.defaultanglepopup);
+        Button confirmButton = exitDialog.findViewById(R.id.confirmButton);
+        exitDialog.getWindow().setBackgroundDrawable(new ColorDrawable(android.graphics.Color.TRANSPARENT));
+        Button cancelButton = exitDialog.findViewById(R.id.cancelButton);
+
+        confirmButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SteeringVariables.setangle = "angle";
+                exitDialog.dismiss();
+            }
+        });
+
+        cancelButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                SteeringVariables.setangle = "zero";
+                exitDialog.dismiss();
+
+            }
+        });
+
+        // Show the exit confirmation dialog
+        exitDialog.show();
+    }
 
     private void saveloginstatus(String status) {
         SharedPreferences sharedPreferences = MainActivity.this.getSharedPreferences(SHARED_PREFS, Context.MODE_PRIVATE);
