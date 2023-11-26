@@ -64,6 +64,8 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -146,7 +148,7 @@ public class HomeFragment extends Fragment {
     private static float initial_current1=0f;
     byte[] datainitial = SteeringVariables.data5; // 2-byte array representing a 16-bit integer
     float floatValue;
-
+    RelativeLayout redirection1_img;
     @SuppressLint("MissingInflatedId")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -173,7 +175,7 @@ public class HomeFragment extends Fragment {
         write = view.findViewById(R.id.write);
         lockicon = view.findViewById(R.id.lockicon);
         bltbtnimg = view.findViewById(R.id.bltbtnimg);
-
+        redirection1_img = view.findViewById(R.id.redirection1_img);
 
         final AudioManager audioManager = (AudioManager) getActivity().getSystemService(Context.AUDIO_SERVICE);
         Log.d("dataa", angle_value);
@@ -184,6 +186,35 @@ public class HomeFragment extends Fragment {
 
 //        SteeringVariables.home_thread_flag= true;
 //        SteeringVariables.status_thread_flag=false;
+
+        redirection1_img.setOnClickListener(new View.OnClickListener() {
+              @Override
+              public void onClick(View view) {
+                  FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
+
+                  // Begin the transaction
+                  FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+                  // Replace FirstFragment with SecondFragment
+                  fragmentTransaction.replace(R.id.frame_layout, new StatusFragment());
+
+                  // Optional: Add the transaction to the back stack
+                  fragmentTransaction.addToBackStack(null);
+
+                  // Commit the transaction
+                  fragmentTransaction.commit();
+              }
+          });
+
+
+
+
+
+
+
+
+
+
 
         l1wheel = view.findViewById(R.id.l1wheel);
         r1wheel = view.findViewById(R.id.r1wheel);
@@ -528,6 +559,7 @@ public class HomeFragment extends Fragment {
                     try {
                         if(listOfStringReceive.size()>0) {
                             String curr_value = listOfStringReceive.get(0);
+                            Log.d("checknandha",curr_value);
                             String one = curr_value.substring(0, 2);
                             String two = curr_value.substring(2, 4);
                             String three = curr_value.substring(4, 6);
@@ -1216,19 +1248,18 @@ public class HomeFragment extends Fragment {
                         r_value = true;
                         byte[] receivedDataBytes = Arrays.copyOf(buffer, bytes);
                         String receivedDataHex = byteArrayToHexString(receivedDataBytes).toLowerCase();
-                        Log.d("checknandha",receivedDataHex);
-                        if(value.startsWith("40") && value.endsWith("0d0a") && value.length()==28){
+                        listOfStringReceive.add(receivedDataHex);
+                        if(value.length()==28){
                             if(listOfStringReceive.size()<0){
                                 listOfStringReceive.clear();
                             }
-                            Log.d("checknandha",receivedDataHex);
-
-                            listOfStringReceive.add(value);
+//                            Log.d("checknandha",receivedDataHex);
+//                            listOfStringReceive.add(value);
                             value = "";
                         }
-                        if(value.length()!=28){
+//                        if(value.length()!=28){
                             value = value+receivedDataHex;
-                        }
+//                        }
 
                         Log.d("shibhusetangle",SteeringVariables.setangle);
 
@@ -1408,7 +1439,7 @@ public class HomeFragment extends Fragment {
 
                             byte[] concatenatedArray = {SteeringVariables.startId, frameId[0], frameId[1], SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3, curent_send_val[0], curent_send_val[1], SteeringVariables.data6, SteeringVariables.data7, SteeringVariables.data8, SteeringVariables.endId1, SteeringVariables.endId2};
                             SteeringVariables.sendReceive.write(concatenatedArray);
-                            Thread.sleep(200);
+                            Thread.sleep(20);
                         }
                         catch (Exception e){
                             Log.d("SendValue",""+e);
