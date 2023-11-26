@@ -305,10 +305,14 @@ public class StatusFragment extends Fragment {
                 tstatus.setText("ok");
                 tstatus.setTextColor(getResources().getColor(R.color.green));
                 tlight.setImageResource(R.drawable.grnbtn);
+                astatus.setTextColor(getResources().getColor(R.color.green));
+                alight.setImageResource(R.drawable.grnbtn);
             } else if (torque_value == false) {
                 tstatus.setText("err");
                 tstatus.setTextColor(getResources().getColor(R.color.red));
+                astatus.setTextColor(getResources().getColor(R.color.red));
                 tlight.setImageResource(R.drawable.redbtn);
+                alight.setImageResource(R.drawable.redbtn);
             }
             if (r_value) {
                 rstatus.setText("receiving");

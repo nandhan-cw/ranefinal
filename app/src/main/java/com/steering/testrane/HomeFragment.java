@@ -68,6 +68,8 @@ import androidx.annotation.NonNull;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -150,7 +152,7 @@ public class HomeFragment extends Fragment {
     private static float initial_current1 = 0f;
     byte[] datainitial = SteeringVariables.data5; // 2-byte array representing a 16-bit integer
     float floatValue;
-
+    RelativeLayout redirection1_img;
     @SuppressLint("MissingInflatedId")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -249,6 +251,26 @@ public class HomeFragment extends Fragment {
             steeringwheel.setEnabled(false);
             lockicon.setImageResource(R.drawable.lock1);
         }
+
+        redirection1_img.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
+
+                // Begin the transaction
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+                // Replace FirstFragment with SecondFragment
+                fragmentTransaction.replace(R.id.frame_layout, new StatusFragment());
+
+                // Optional: Add the transaction to the back stack
+                fragmentTransaction.addToBackStack(null);
+
+                // Commit the transaction
+                fragmentTransaction.commit();
+            }
+        });
+
 
 
         if (SteeringVariables.bluetooth) {
@@ -536,7 +558,7 @@ public class HomeFragment extends Fragment {
                     try {
                         if (listOfStringReceive.size() > 1) {
                             String curr_value = listOfStringReceive.get(0);
-                            Log.d("shibho","curr_value : "+curr_value);
+                            Log.d("shibho","currCheck : "+curr_value);
                             String one = curr_value.substring(0, 2);
                             String two = curr_value.substring(2, 4);
                             String three = curr_value.substring(4, 6);
@@ -551,8 +573,9 @@ public class HomeFragment extends Fragment {
                             String twelve = curr_value.substring(22, 24);
                             String thirteen = curr_value.substring(24, 26);
                             String fourteen = curr_value.substring(26, 28);
-                            if (one.equals("04") && thirteen.equals("0d") && fourteen.equals("0a")) {
+                            if (one.equals("40") && thirteen.equals("0d") && fourteen.equals("0a")) {
                                 if (five.equals("02")) {
+                                    Log.d("shibho","curr_value : "+curr_value);
                                     byte fourdata = (byte) Integer.parseInt(eight, 16);
                                     byte fivedata = (byte) Integer.parseInt(nine, 16);
                                     int decimalValue = (fourdata & 0xFF) << 8 | (fivedata & 0xFF);
@@ -1217,6 +1240,7 @@ public class HomeFragment extends Fragment {
                         byte[] receivedDataBytes = Arrays.copyOf(buffer, bytes);
                         String receivedDataHex = byteArrayToHexString(receivedDataBytes).toLowerCase();
                         listOfStringReceive.add(receivedDataHex);
+                        //Log.d("receivedata", receivedDataHex.toString());
 //                        if(value.length()!=28){
 //                            value = value+receivedDataHex;
 //                        }
@@ -1306,6 +1330,7 @@ public class HomeFragment extends Fragment {
                                 String eight = curr_value.substring(14, 16);
                                 String nine = curr_value.substring(16, 18);
                                 if (five.equals("02")) {
+                                    SteeringVariables.first_occur = false;
                                     byte fourdata = (byte) Integer.parseInt(eight, 16);
                                     byte fivedata = (byte) Integer.parseInt(nine, 16);
                                     int decimalValue = (fourdata & 0xFF) << 8 | (fivedata & 0xFF);
@@ -1344,32 +1369,33 @@ public class HomeFragment extends Fragment {
                                     currentRotationAngle = floatValue;
                                     SteeringVariables.data5 = new byte[]{0x00, 0x00};
                                 } else if (SteeringVariables.setangle.equals("angle")) {
-
-                                    float valuefloat = Float.parseFloat(SteeringVariables.first_angle);
-                                    if (valuefloat > 0) {
-                                        floatValue = (float) Math.abs(valuefloat);
-                                    } else {
-                                        floatValue = (float) valuefloat;
-                                    }
-
-                                    rotationHandler.postDelayed(new Runnable() {
-                                        @Override
-                                        public void run() {
-                                            ObjectAnimator rotateAnimator1 = ObjectAnimator.ofFloat(wheelL, "rotation", wheelL.getRotation(), floatValue);
-                                            rotateAnimator1.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
-                                            rotateAnimator1.start();
-                                            ObjectAnimator rotateAnimator2 = ObjectAnimator.ofFloat(wheelR, "rotation", wheelR.getRotation(), floatValue);
-                                            rotateAnimator2.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
-                                            rotateAnimator2.start();
-                                            rotateSteeringWheel(floatValue);
+                                    if (SteeringVariables.first_angle != "") {
+                                        float valuefloat = Float.parseFloat(SteeringVariables.first_angle);
+                                        if (valuefloat > 0) {
+                                            floatValue = (float) Math.abs(valuefloat);
+                                        } else {
+                                            floatValue = (float) valuefloat;
                                         }
-                                    }, ROTATION_DELAY);
-                                    Log.d("testangleshibo", SteeringVariables.setangle + " " + floatValue);
-    //                                    SteeringVariables.data5= decimaltodoublebyte(floatValue);
-                                    initialTouchAngle = floatValue;
-                                    currentRotationAngle = floatValue;
+
+                                        rotationHandler.postDelayed(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                ObjectAnimator rotateAnimator1 = ObjectAnimator.ofFloat(wheelL, "rotation", wheelL.getRotation(), floatValue);
+                                                rotateAnimator1.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
+                                                rotateAnimator1.start();
+                                                ObjectAnimator rotateAnimator2 = ObjectAnimator.ofFloat(wheelR, "rotation", wheelR.getRotation(), floatValue);
+                                                rotateAnimator2.setDuration(2000); // Set the duration for the rotation animation (in milliseconds)
+                                                rotateAnimator2.start();
+                                                rotateSteeringWheel(floatValue);
+                                            }
+                                        }, ROTATION_DELAY);
+                                        Log.d("testangleshibo", SteeringVariables.setangle + " " + floatValue);
+                                        //                                    SteeringVariables.data5= decimaltodoublebyte(floatValue);
+                                        initialTouchAngle = floatValue;
+                                        currentRotationAngle = floatValue;
+                                    }
                                 }
-                                SteeringVariables.first_occur = false;
+
                             }
                         }
                     }
