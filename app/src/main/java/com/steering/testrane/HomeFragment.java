@@ -157,7 +157,7 @@ public class HomeFragment extends Fragment {
         SteeringVariables.home_thread_flag = true;
         SteeringVariables.status_thread_flag = false;
 
-        setAngleDialog();
+//        setAngleDialog();
 
         angletext = view.findViewById(R.id.angletext);
         connectStatus = view.findViewById(R.id.connectStatus);
@@ -702,7 +702,6 @@ public class HomeFragment extends Fragment {
     public void rotationAngleProcess() {
 
         float rotationAngleDiff = touchAngle - initialTouchAngle;
-
         if (Math.abs(rotationAngleDiff) >= TOUCH_SENSITIVITY_THRESHOLD) {
             // Calculate the new rotation angle
             currentRotationAngle += (rotationAngleDiff > 0) ? ROTATION_STEP : -ROTATION_STEP;
@@ -718,6 +717,7 @@ public class HomeFragment extends Fragment {
 //                    Log.d("unique: ",""+i+" "+uniqueAnglesSetSendVal.contains(i));
                         uniqueAnglesSetSendVal.add(i);
                         Log.d("checkrotation", "" + i);
+
                     }
                 }
                 else if(initial_current1<currentRotationAngle) {
@@ -742,6 +742,8 @@ public class HomeFragment extends Fragment {
                     }
                 }
             }
+
+//            Log.d("anglecheckshibhu1","sendreceive "+uniqueAnglesSetSendVal.get(uniqueAnglesSetSendVal.size()-1));
 //            byte[] formattedData = formatAndConvertData(currentRotationAngle);
 
             initial_current1 = currentRotationAngle;
@@ -1383,18 +1385,18 @@ public class HomeFragment extends Fragment {
                     }
 
                     if (SteeringVariables.sendReceive != null) {
-
                         new Thread(new Runnable() {
                             @Override
                             public void run() {
                                 byte[] curent_send_val = new byte[0];
                                 while (true) {
+//                                    Log.d("anglecheckshibhu","sendreceive "+uniqueAnglesSetSendVal.size());
                                     try {
-
                                         if (uniqueAnglesSetSendVal.size() > 0) {
                                             float cur_val = uniqueAnglesSetSendVal.get(0);
                                             curent_send_val = formatAndConvertData(cur_val);
                                             uniqueAnglesSetSendVal.remove(0);
+//                                            Log.d("anglecheckshibhu",cur_val+"");
 //                                            byte[] frameId = convertShortToBytes(SteeringVariables.frameId1);
 //                                            byte[] concatenatedArray = {SteeringVariables.startId, frameId[0], frameId[1], SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3, curent_send_val[0], curent_send_val[1], SteeringVariables.data6, SteeringVariables.data7, SteeringVariables.data8, SteeringVariables.endId1, SteeringVariables.endId2};
 //                                            SteeringVariables.sendReceive.write(concatenatedArray);
@@ -1407,6 +1409,8 @@ public class HomeFragment extends Fragment {
                                         }
 
                                         byte[] frameId = convertShortToBytes(SteeringVariables.frameId1);
+//                                        Log.d("anglecheckshibhu","list else "+curent_send_val[0]+" "+curent_send_val[1]);
+
                                         byte[] concatenatedArray = {SteeringVariables.startId, frameId[0], frameId[1], SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3, curent_send_val[0], curent_send_val[1], SteeringVariables.data6, SteeringVariables.data7, SteeringVariables.data8, SteeringVariables.endId1, SteeringVariables.endId2};
                                         SteeringVariables.sendReceive.write(concatenatedArray);
                                         Thread.sleep(20);
