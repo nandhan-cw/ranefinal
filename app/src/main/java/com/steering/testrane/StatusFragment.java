@@ -12,6 +12,7 @@ import static com.steering.testrane.SteeringVariables.r_value;
 import static com.steering.testrane.SteeringVariables.sendReceive;
 import static com.steering.testrane.SteeringVariables.torque_value;
 
+import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothHeadset;
@@ -35,6 +36,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,11 +46,13 @@ import java.util.Set;
 public class StatusFragment extends Fragment {
 
     Button steerControl;
+    RelativeLayout redirection2_img;
     FragmentManager fragmentManager;
     ImageView alight,mlight,tlight,elight,clight;
     static TextView astatus,mstatus,tstatus,estatus,cstatus,rstatus;
     static final int STATE_MESSAGE_RECEIVED = 5,STATE_MESSAGE_NOT_RECEIVED=6;
 
+    @SuppressLint("MissingInflatedId")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
@@ -73,7 +77,7 @@ public class StatusFragment extends Fragment {
         elight = view.findViewById(R.id.elight);
         clight = view.findViewById(R.id.clight);
         rstatus = view.findViewById(R.id.rstatus);
-
+        redirection2_img = view.findViewById(R.id.redirection2_img);
         if(r_value){
             rstatus.setText("receiving");
         }else{
@@ -178,6 +182,27 @@ public class StatusFragment extends Fragment {
 //                }
 //            }
 //        }).start();
+
+        redirection2_img.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                FragmentManager fragmentManager = requireActivity().getSupportFragmentManager();
+
+                // Begin the transaction
+                FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+
+                // Replace FirstFragment with SecondFragment
+                fragmentTransaction.replace(R.id.frame_layout, new HomeFragment());
+
+                // Optional: Add the transaction to the back stack
+                fragmentTransaction.addToBackStack(null);
+
+                // Commit the transaction
+                fragmentTransaction.commit();
+            }
+        });
+
+
 
 
         /// load status

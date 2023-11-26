@@ -49,6 +49,7 @@
             android:id="@+id/frame_layout"
             android:layout_marginTop="?android:attr/actionBarSize"/>
 
+
         <androidx.coordinatorlayout.widget.CoordinatorLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -63,7 +64,7 @@
                 app:fabCradleMargin="10dp"
                 android:background="@color/dark_grey"
                 app:backgroundTint="@color/dark_grey"
-
+                android:visibility="gone"
                 app:fabCradleRoundedCornerRadius="50dp">
 
                 <com.google.android.material.bottomnavigation.BottomNavigationView
