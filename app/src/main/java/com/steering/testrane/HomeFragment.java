@@ -202,7 +202,7 @@ public class HomeFragment extends Fragment {
         tractorbody = view.findViewById(R.id.tractorbody);
         Handler handler = new Handler();
         anglelist = new ArrayList();
-
+        redirection1_img = view.findViewById(R.id.redirection1_img);
 
         short shortValue = (short) ((datainitial[0] & 0xFF) << 8 | (datainitial[1] & 0xFF));
 
