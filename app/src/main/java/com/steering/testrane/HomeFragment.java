@@ -11,6 +11,7 @@ import static com.steering.testrane.SteeringVariables.listOfByteArrays;
 import static com.steering.testrane.SteeringVariables.listOfStringReceive;
 import static com.steering.testrane.SteeringVariables.motor_value;
 import static com.steering.testrane.SteeringVariables.r_value;
+import static com.steering.testrane.SteeringVariables.sendReceive;
 import static com.steering.testrane.SteeringVariables.steeringStatus;
 import static com.steering.testrane.SteeringVariables.torque_value;
 
@@ -153,6 +154,7 @@ public class HomeFragment extends Fragment {
     byte[] datainitial = SteeringVariables.data5; // 2-byte array representing a 16-bit integer
     float floatValue;
     RelativeLayout redirection1_img;
+
     @SuppressLint("MissingInflatedId")
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -272,7 +274,6 @@ public class HomeFragment extends Fragment {
         });
 
 
-
         if (SteeringVariables.bluetooth) {
             bltbtnimg.setImageResource(R.drawable.baseline_bluetooth_24);
             int blueColor = ContextCompat.getColor(getContext(), R.color.blue); // R.color.blue should be defined in your resources
@@ -301,7 +302,7 @@ public class HomeFragment extends Fragment {
 //        rotationAngleProcess();
         steeringwheel.setRotation(currentRotationAngle);
         rotateLWheel(currentRotationAngle);
-        Log.d("dataa", currentRotationAngle+"");
+        Log.d("dataa", currentRotationAngle + "");
 
         lockicon.setOnClickListener(new View.OnClickListener() {
             @SuppressLint("ResourceAsColor")
@@ -510,12 +511,14 @@ public class HomeFragment extends Fragment {
                                 Float finalTemoca = temoca;
 
                                 if (temoca < 0) {
-                                    for (float i = temoca; i <= 0; i++) {
+                                    for (float i = temoca; i <= 0; i += 10) {
+                                        Log.d("checkrotation", "" + i);
 //                                            Log.d("unique: ",""+i+" "+uniqueAnglesSetSendVal.contains(i));
                                         uniqueAnglesSetSendVal.add(i);
                                     }
                                 } else {
-                                    for (float i = temoca; i >= 0; i--) {
+                                    for (float i = temoca; i >= 0; i -= 10) {
+                                        Log.d("checkrotation", "" + i);
 //                                                Log.d("unique: ",""+i);
                                         uniqueAnglesSetSendVal.add(i);
                                     }
@@ -558,7 +561,7 @@ public class HomeFragment extends Fragment {
                     try {
                         if (listOfStringReceive.size() > 1) {
                             String curr_value = listOfStringReceive.get(0);
-                            Log.d("shibho","currCheck : "+curr_value);
+                            Log.d("shibho", "currCheck : " + curr_value);
                             String one = curr_value.substring(0, 2);
                             String two = curr_value.substring(2, 4);
                             String three = curr_value.substring(4, 6);
@@ -575,7 +578,7 @@ public class HomeFragment extends Fragment {
                             String fourteen = curr_value.substring(26, 28);
                             if (one.equals("40") && thirteen.equals("0d") && fourteen.equals("0a")) {
                                 if (five.equals("02")) {
-                                    Log.d("shibho","curr_value : "+curr_value);
+                                    Log.d("shibho", "curr_value : " + curr_value);
                                     byte fourdata = (byte) Integer.parseInt(eight, 16);
                                     byte fivedata = (byte) Integer.parseInt(nine, 16);
                                     int decimalValue = (fourdata & 0xFF) << 8 | (fivedata & 0xFF);
@@ -665,13 +668,12 @@ public class HomeFragment extends Fragment {
         editor.apply();
     }
 
-    private void startSendData(){
+    private void startSendData() {
 
-        if(SteeringVariables.steeringStatus.equals("locked")){
-            SteeringVariables.data6=0x01;
-        }
-        else{
-            SteeringVariables.data6=0x00;
+        if (SteeringVariables.steeringStatus.equals("locked")) {
+            SteeringVariables.data6 = 0x01;
+        } else {
+            SteeringVariables.data6 = 0x00;
         }
     }
 
@@ -686,32 +688,29 @@ public class HomeFragment extends Fragment {
             rotateLWheel(currentRotationAngle);
             // Update the angle TextView
             angletext.setText("Angles: " + uniqueAnglesSet.toString());
-            if(currentRotationAngle<=0){
-                if(initial_current1>currentRotationAngle) {
-                    for (float i = initial_current1; i >= currentRotationAngle; i--) {
+            if (currentRotationAngle <= 0) {
+                if (initial_current1 > currentRotationAngle) {
+                    for (float i = initial_current1; i >= currentRotationAngle; i -= 10) {
 //                    Log.d("unique: ",""+i+" "+uniqueAnglesSetSendVal.contains(i));
                         uniqueAnglesSetSendVal.add(i);
                         Log.d("checkrotation", "" + i);
 
                     }
-                }
-                else if(initial_current1<currentRotationAngle) {
-                    for (float i = initial_current1; i <= currentRotationAngle; i++) {
+                } else if (initial_current1 < currentRotationAngle) {
+                    for (float i = initial_current1; i <= currentRotationAngle; i += 10) {
 //                    Log.d("unique: ",""+i+" "+uniqueAnglesSetSendVal.contains(i));
                         uniqueAnglesSetSendVal.add(i);
                         Log.d("checkrotation", "" + i);
                     }
                 }
-            }
-            else if(currentRotationAngle>=0){
-                if(initial_current1<currentRotationAngle) {
-                    for (float i = initial_current1; i <= currentRotationAngle; i++) {
+            } else if (currentRotationAngle >= 0) {
+                if (initial_current1 < currentRotationAngle) {
+                    for (float i = initial_current1; i <= currentRotationAngle; i += 10) {
                         uniqueAnglesSetSendVal.add(i);
                         Log.d("checkrotation", "" + i);
                     }
-                }
-                else if(initial_current1>currentRotationAngle) {
-                    for (float i = initial_current1; i >= currentRotationAngle; i--) {
+                } else if (initial_current1 > currentRotationAngle) {
+                    for (float i = initial_current1; i >= currentRotationAngle; i -= 10) {
                         uniqueAnglesSetSendVal.add(i);
                         Log.d("checkrotation", "" + i);
                     }
@@ -719,7 +718,7 @@ public class HomeFragment extends Fragment {
             }
 
 //            byte[] formattedData = formatAndConvertData(currentRotationAngle);
-            Log.d("touchangle","rotateangle "+uniqueAnglesSetSendVal.size());
+            Log.d("touchangle", "rotateangle " + uniqueAnglesSetSendVal.size());
 //            SteeringVariables.data5 = decimaltodoublebyte(currentRotationAngle);
             initial_current1 = currentRotationAngle;
             initialTouchAngle = touchAngle;
@@ -811,8 +810,7 @@ public class HomeFragment extends Fragment {
             byteArray[0] = 0x00;
             byteArray[1] = (byte) Integer.parseInt(hexAngle, 16);
             return byteArray;
-        }
-        else {
+        } else {
             // If angle is more than 255, store it in a double byte array
             byte[] doubleByteArray = new byte[2];
             doubleByteArray[0] = (byte) Integer.parseInt(hexAngle.substring(0, 2), 16);
@@ -838,8 +836,7 @@ public class HomeFragment extends Fragment {
             byteArray[1] = (byte) Integer.parseInt(hexAngle, 16);
 //            SteeringVariables.data5 = byteArray;
             return byteArray;
-        }
-        else {
+        } else {
             byte[] doubleByteArray = new byte[2];
             doubleByteArray[0] = (byte) Integer.parseInt(hexAngle.substring(0, 2), 16);
             doubleByteArray[1] = (byte) Integer.parseInt(hexAngle.substring(2), 16);
@@ -958,8 +955,6 @@ public class HomeFragment extends Fragment {
 
                 }
             });
-
-
 
 
         }
@@ -1084,10 +1079,10 @@ public class HomeFragment extends Fragment {
                 if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
                     ActivityCompat.requestPermissions(getActivity(), new String[]{Manifest.permission.BLUETOOTH_SCAN}, 2);
                 }
-                try{
+                try {
                     SteeringVariables.bluetoothAdapter.cancelDiscovery();
-                }catch (Exception e){
-                    Log.d("Bluetooth","cancelDiscovery() not working");
+                } catch (Exception e) {
+                    Log.d("Bluetooth", "cancelDiscovery() not working");
                 }
                 socket = device.createRfcommSocketToServiceRecord(MY_UUID);
                 inputStream = socket.getInputStream();
@@ -1098,16 +1093,17 @@ public class HomeFragment extends Fragment {
         }
 
         public void cancel() throws IOException {
-            try{
+            try {
                 socket.close();
                 try {
                     SteeringVariables.bluetoothAdapter.startDiscovery();
-                }catch (Exception e){}
+                } catch (Exception e) {
+                }
                 Message message = Message.obtain();
                 message.what = STATE_CANCELLED;
                 handler.sendMessage(message);
-            }catch (Exception e){
-                Log.d("Socket close","Socket not closed");
+            } catch (Exception e) {
+                Log.d("Socket close", "Socket not closed");
             }
 
         }
@@ -1116,20 +1112,47 @@ public class HomeFragment extends Fragment {
             try {
                 if (inputStream != null && outputStream != null) {
                     if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
-
                     }
+
 //                    SteeringVariables.bluetoothAdapter.cancelDiscovery();
                     socket.connect();
                     SteeringVariables.bluetooth = true;
-//                    readDataInput();
-//                    loadDataInput();
+
+//                    new Thread(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                            while (true) {
+////                                try {
+////                                    if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+////
+////                                        return;
+////                                    }
+////                                    socket = device.createRfcommSocketToServiceRecord(MY_UUID);
+////                                    socket.connect();
+////                                    Log.d("checkblue", "connected");
+////                                }
+////                                catch (Exception e){
+////                                    Log.d("checkblue", "Not connected");
+////                                }
+//
+////                                if (ActivityCompat.checkSelfPermission(getContext(), Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
+////                                    return;
+////                                }
+////                                if (!socket.isConnected()){
+////                                    Message message = Message.obtain();
+////                                    message.what = STATE_CANCELLED;
+////                                    handler.sendMessage(message);
+////                                }
+//                            }
+//                        }
+//                    }).start();
+
                     Log.e("11111111111111111111111111", "trying 1...");
                     Message message = Message.obtain();
                     message.what = STATE_CONNECTED;
                     handler.sendMessage(message);
                     SteeringVariables.sendReceive = new SendReceive(socket);
                     SteeringVariables.sendReceive.start();
-
 
                 }
                 else {
@@ -1205,6 +1228,11 @@ public class HomeFragment extends Fragment {
                     SteeringVariables.sendReceive = new SendReceive(socket);
                     SteeringVariables.sendReceive.start();
                     break;
+                }else{
+                    Message message = Message.obtain();
+                    message.what = STATE_CANCELLED;
+                    handler.sendMessage(message);
+
                 }
             }
         }
@@ -1549,7 +1577,7 @@ public class HomeFragment extends Fragment {
                             byte[] frameId = convertShortToBytes(SteeringVariables.frameId1);
                             byte[] concatenatedArray = {SteeringVariables.startId, frameId[0], frameId[1], SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3, curent_send_val[0], curent_send_val[1], SteeringVariables.data6, SteeringVariables.data7, SteeringVariables.data8, SteeringVariables.endId1, SteeringVariables.endId2};
                             SteeringVariables.sendReceive.write(concatenatedArray);
-                            Thread.sleep(20);
+                            Thread.sleep(300);
                         }
                         catch (Exception e){
                             Log.d("SendValue",""+e);
