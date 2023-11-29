@@ -1117,7 +1117,6 @@ public class HomeFragment extends Fragment {
 //                    SteeringVariables.bluetoothAdapter.cancelDiscovery();
                     socket.connect();
                     SteeringVariables.bluetooth = true;
-
 //                    new Thread(new Runnable() {
 //                        @Override
 //                        public void run() {
@@ -1461,15 +1460,24 @@ public class HomeFragment extends Fragment {
             }
             Log.d("testangleshibo",SteeringVariables.setangle+" "+floatValue);
         }
-        else if(SteeringVariables.setangle.equals("angle")){
-
-            float valuefloat = Float.parseFloat(SteeringVariables.first_angle);
-            if (valuefloat>0) {
-                floatValue = (float) Math.abs(valuefloat);
+        else if (SteeringVariables.setangle.equals("angle")) {
+            if (!SteeringVariables.first_angle.isEmpty()) {
+                try {
+                    float valuefloat = Float.parseFloat(SteeringVariables.first_angle);
+                    floatValue = Math.abs(valuefloat);
+                } catch (NumberFormatException e) {
+                    // Handle the case when parsing fails
+                    Log.e("testangleshibo", "Error parsing first_angle: " + e.getMessage());
+                    // You might want to set a default value or handle this error in another way
+                    floatValue = 0.0f; // Setting a default value in case of parsing failure
+                }
             } else {
-                floatValue = (float) Math.abs(valuefloat);
+                // Handle the case when first_angle is empty
+                Log.e("testangleshibo", "Error: first_angle is empty");
+                floatValue = 0.0f; // Setting a default value when the string is empty
             }
-            Log.d("testangleshibo",SteeringVariables.setangle+" "+floatValue);
+
+            Log.d("testangleshibo", SteeringVariables.setangle + " " + floatValue);
         }
     }
         public static byte[] hexStringToByteArray(String hexString) {
@@ -1577,7 +1585,7 @@ public class HomeFragment extends Fragment {
                             byte[] frameId = convertShortToBytes(SteeringVariables.frameId1);
                             byte[] concatenatedArray = {SteeringVariables.startId, frameId[0], frameId[1], SteeringVariables.dlc, SteeringVariables.data1, SteeringVariables.data2, SteeringVariables.data3, curent_send_val[0], curent_send_val[1], SteeringVariables.data6, SteeringVariables.data7, SteeringVariables.data8, SteeringVariables.endId1, SteeringVariables.endId2};
                             SteeringVariables.sendReceive.write(concatenatedArray);
-                            Thread.sleep(300);
+                            Thread.sleep(20);
                         }
                         catch (Exception e){
                             Log.d("SendValue",""+e);
